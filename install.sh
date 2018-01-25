@@ -6,7 +6,8 @@ INSTDIR="$( cd "$(dirname "$0")" ; pwd)"
 cd ${INSTDIR}
 if [ -d bowtie2 ]; then
 	rm -r bowtie2
-elif [ -d bwa ]; then
+fi
+if [ -d bwa ]; then
 	rm -r bwa
 fi
 
@@ -26,10 +27,13 @@ mv bwa-0.7.15 bwa
 cd bwa; make
 
 #install KMC3
-cd $INSTDIR/squat_libs/gen_kmer
+cd ${INSTDIR}/libs/gen_kmer
 git clone https://github.com/refresh-bio/KMC.git
 cd KMC; make DISABLE_ASMLIB=true
 
+#compile kcnLandscape cpp
+cd ${INSTDIR}/libs/gen_kmer/kcnLandscape
+g++ histAnalyze.cpp -o histAnalyze
 
 #install python packages
 echo "install python packages"
