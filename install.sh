@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 INSTDIR="$( cd "$(dirname "$0")" ; pwd)"
 
@@ -15,7 +16,6 @@ wget https://downloads.sourceforge.net/project/bowtie-bio/bowtie2/2.3.4/bowtie2-
 unzip bowtie2-2.3.4-linux-x86_64.zip
 rm bowtie2-2.3.4-linux-x86_64.zip
 mv bowtie2-2.3.4-linux-x86_64 bowtie2
-PATH=$PATH:$INSTDIR/bowtie2
 
 #install bwa
 echo "install bwa-0.7.15"
@@ -24,7 +24,12 @@ tar jxvf bwa-0.7.15.tar.bz2
 rm bwa-0.7.15.tar.bz2
 mv bwa-0.7.15 bwa
 cd bwa; make
-PATH=$PATH:$INSTDIR/bwa
+
+#install KMC3
+cd $INSTDIR/squat_libs/gen_kmer
+git clone https://github.com/refresh-bio/KMC.git
+cd KMC; make DISABLE_ASMLIB=true
+
 
 #install python packages
 echo "install python packages"
