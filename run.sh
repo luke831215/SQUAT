@@ -1,11 +1,21 @@
 #!/bin/bash
+set -e
 
 usage()
 {
 	echo -e "SQUAT: Sequencing Quality Assessment Tool"
-	echo -e "Usage: $0 [-o <output_dir>] [-r <read_name>] [-l <read_length>] [-i fastq_path] [-g <genome_path>]\n"
+	echo -e "Usage: $0 [-o <output_dir>] [-r <read_name>] [-l <num_read>] [-i fastq_path] [-g <genome_path>]\n"
 	echo "Optional args:"
-	echo "-t	--thread	<int>	Number of threads to use" 
+	echo "-t	--thread	<int>	Number of thread to use" 
+}
+
+function to_abs	{
+	case $1 in
+  		/*) absolute=$1;;
+  		*) absolute=$PWD/$1;;
+	esac
+
+	echo $absolute
 }
 
 if [[ $# -eq 0 || $(echo $1 | cut -c1) != "-" ]];then
@@ -13,14 +23,14 @@ if [[ $# -eq 0 || $(echo $1 | cut -c1) != "-" ]];then
     exit 1
 fi
 
-while getopts ":o:t:h" opt; do
+while getopts ":o:r:l:g:i:t:h" opt; do
   case $opt in
     h)
 	  usage
 	  exit 0
       ;;
     o)
-	  OUTDIR=$OPTARG
+	  OUTDIR=$( to_abs ${OPTARG} )
 	  ;;
 	r)
 	  DATA=$OPTARG
@@ -29,13 +39,13 @@ while getopts ":o:t:h" opt; do
 	  READSIZE=$OPTARG
 	  ;;
 	g)
-	  REFLOC=$OPTARG
+	  REFLOC=$( to_abs ${OPTARG} )
 	  ;;
 	i)
-	  ECV_LOC=$OPTARG
+	  ECVLOC=$( to_abs ${OPTARG} )	
 	  ;;
 	t)
-	  MAXPROCESS=$OPTARG
+	  MAXPROC=$OPTARG
 	  ;;
 	:)
 	  echo "Missing option argument for -$OPTARG" >&2; exit 1
@@ -43,21 +53,33 @@ while getopts ":o:t:h" opt; do
     ?)
       echo "Unknown option: -"${OPTARG} >&2; exit 1
       ;;
-    *) 
+    *)
 	  echo "Unimplemented option: -$OPTARG" >&2; exit 1
 	  ;;
   esac
 done
 
-if [[ -z "$OUTDIR" || -z "$DATA" || -z "$READSIZE" || -z "$REFLOC" || -z "$ECV_LOC" ]]; then
+if [[ -z "$OUTDIR" || -z "$DATA" || -z "$READSIZE" || -z "$REFLOC" || -z "$ECVLOC" ]]; then
 	usage
 	exit 1
+fi
+
+if [[ -z "$MAXPROC" ]]; then
+	MAXPROC=$(($(grep -c ^processor /proc/cpuinfo)/3))
 fi
 
 EXECDIR="$( cd "$(dirname "$0")" ; pwd)"
 #shift $((OPTIND-1))
 #echo "$@"
 
+#map reads to genome using alignment tools
+echo "map reads to genome using alignment tools"
+bash ${EXECDIR}/libs/run_mapping.sh $EXECDIR $OUTDIR $DATA $READSIZE $REFLOC $ECVLOC $MAXPROC
 
-bash ${CRTDIR}/squat_libs/run_mapping.sh $OUTDIR $DATA $READSIZE $REFLOC $ECV_LOC
-#bash ${CRTDIR}/squat_libs/run_kcn.sh
+#generate kmer info
+echo "generate kmer stats"
+bash ${EXECDIR}/libs/run_kcn.sh $OUTDIR/kcn_histo $DATA $ECVLOC
+
+#concatenate tables and imgs to report.pdf
+echo "Generate reports"
+python ${EXECDIR}/libs/gen_report.py ${OUTDIR}/report.pdf ${DATA} ${READSIZE}
