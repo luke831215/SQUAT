@@ -23,7 +23,7 @@ if [[ $# -eq 0 || $(echo $1 | cut -c1) != "-" ]];then
     exit 1
 fi
 
-while getopts ":o:r:l:g:i:t:h" opt; do
+while getopts ":o:r:g:i:t:h" opt; do
   case $opt in
     h)
 	  usage
@@ -34,9 +34,6 @@ while getopts ":o:r:l:g:i:t:h" opt; do
 	  ;;
 	r)
 	  DATA=$OPTARG
-	  ;;
-	l)
-	  READSIZE=$OPTARG
 	  ;;
 	g)
 	  REFLOC=$( to_abs ${OPTARG} )
@@ -68,6 +65,7 @@ if [[ -z "$MAXPROC" ]]; then
 	MAXPROC=$(($(grep -c ^processor /proc/cpuinfo)/3))
 fi
 
+READSIZE=$(($(wc -l $ECVLOC | cut -d ' ' -f 1) /4))
 EXECDIR="$( cd "$(dirname "$0")" ; pwd)"
 #shift $((OPTIND-1))
 #echo "$@"
@@ -82,4 +80,5 @@ bash ${EXECDIR}/libs/run_kcn.sh $OUTDIR/kcn_histo $DATA $ECVLOC
 
 #concatenate tables and imgs to report.pdf
 echo "Generate reports"
-python ${EXECDIR}/libs/gen_report.py ${OUTDIR}/report.pdf ${DATA} ${READSIZE}
+mkdir ${OUTDIR}/imgs
+python ${EXECDIR}/libs/gen_report.py ${OUTDIR} ${DATA} ${READSIZE}
