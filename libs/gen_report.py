@@ -4,17 +4,46 @@ import re
 import numpy as np 
 import matplotlib; matplotlib.use('pdf')
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 import pickle
+import mpld3
+import glob
+import base64
 
+from matplotlib.backends.backend_pdf import PdfPages
+from bs4 import BeautifulSoup
+
+
+plot_figures = []
+table_figures = []
+
+
+def save_to_html(all_html_fpath):
+	"""concat all figures into report.html by inserting figures into template.html"""
+	template_fpath = os.path.dirname(sys.argv[0])+'/template.html'
+	with open(template_fpath) as file:
+		soup = BeautifulSoup(file, "lxml")
+		main_div = soup.find('div', class_='main')
+		cnt = 0
+		#for table in table_figures:
+		files = glob.glob('{}/imgs/*.png'.format(src_dir))
+		files.sort(key=os.path.getmtime)
+		for img_name in files:
+			data_uri = base64.b64encode(open(img_name, 'rb').read()).decode('utf-8').replace('\n', '')
+			new_div = soup.new_tag("div", id="F{}".format(cnt))
+			img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri))
+			new_div.append(img_src)
+			main_div.append(new_div)
+			cnt += 1
+		with open(all_html_fpath, 'w') as w:
+			w.write(str(soup))
 
 def save_to_pdf(all_pdf_fpath):
 	"""concat all figures into report.pdf"""
 
 	all_pdf_file = PdfPages(all_pdf_fpath)
-	for figure in pdf_tables_figures:
+	for figure in table_figures:
 		all_pdf_file.savefig(figure, bbox_inches='tight')
-	for figure in pdf_plots_figures:
+	for figure in plot_figures:
 		try:
 			all_pdf_file.savefig(figure)
 		except:
@@ -37,12 +66,12 @@ def plot_sam_dis(data, xlabel, title):
 	hist, bins = np.histogram(data, bins=20)
 	
 	fig, ax = plt.subplots(figsize=(15,10))
-	ax.bar(bins[:-1], '{:.0%}'.hist.astype(np.float32) / hist.sum(), width=(bins[1]-bins[0]), alpha=0.5, color='steelblue', linewidth=0)
+	ax.bar(bins[:-1], hist.astype(np.float32) / hist.sum() * 100, width=(bins[1]-bins[0]), alpha=0.5, color='steelblue', linewidth=0)
 	plt.xlabel(xlabel)
 	plt.ylabel('Percentile')
 	plt.title(title)
-	pdf_plots_figures.append(fig)
-	#plt.savefig('/home/luke831215/test/imgs/{}'.format(title))
+	plot_figures.append(fig)
+	plt.savefig('{0}/imgs/{1}.png'.format(src_dir, title.replace(" ", "")))
 	plt.close()
 
 
@@ -80,13 +109,13 @@ def extract_sam_info(data, read_size, sam_file):
 
 def draw_report_tables(aln_tool_list, src_dir, data, read_size):
 	read_dict = {}
-	labels = ['N (contain N)', 'F (unmapped)', 'M (multi-mapped)', 'P (no error)', 'S (substitution error)', 'C (clips)', 'O (other error)']
+	labels = ['N (contain N)', 'F (unmapped)', 'M (multi-mapped)', 'P (no error)', 'S (substitution error)', 'C (clips)', 'O (other error)', 'X (special)']
 	read_dict = [[] for i in range(10)]
-	stats = [[None for j in range(4)] for i in range(7)]
+	stats = [[None for j in range(len(aln_tool_list))] for i in range(8)]
 
 	for align_tool in aln_tool_list:
 		idx = 0
-		with open('{0}/{1}//Pauto/ids/{2}_ecv_0_reads.cnt'.format(src_dir, align_tool, data), 'r') as infile:
+		with open('{0}/{1}/Pauto/ids/{2}_ecv_0_reads.cnt'.format(src_dir, align_tool, data), 'r') as infile:
 			for line in infile:
 				[num_reads, name] = line.strip().split()
 				read_dict[idx].append(int(num_reads))
@@ -109,9 +138,10 @@ def draw_report_tables(aln_tool_list, src_dir, data, read_size):
 	the_table.set_fontsize(14)
 	plt.subplots_adjust(0.25)
 
-	plt.title('Label Distribution Table', fontdict={'fontsize': 30})
-	pdf_tables_figures.append(fig)
-	#plt.savefig(output)
+	title = 'Label Distribution Table'
+	plt.title(title, fontdict={'fontsize': 30})
+	table_figures.append(fig)
+	plt.savefig('{0}/imgs/{1}.png'.format(src_dir, title.replace(" ", "")))
 	plt.close()
 
 
@@ -202,12 +232,16 @@ def get_label_array(info_file, read_size):
 
 		
 if __name__ == '__main__':
-	all_pdf_fpath, data, read_size = sys.argv[1], sys.argv[2], sys.argv[3]
-	src_dir = os.path.dirname(all_pdf_fpath)
-	aln_tool_list = ['bwa-mem', 'bwa-endtoend', 'bowtie2-local', 'bowtie2-endtoend']
+	src_dir, data, read_size = sys.argv[1], sys.argv[2], sys.argv[3]
+	#src_dir = os.path.dirname(all_pdf_fpath)
+	all_pdf_fpath = src_dir+'/report.pdf'
+	all_html_fpath = src_dir+'/report.html'
+	aln_tool_list = ['kart', 'bwa-mem', 'bowtie2-local', 'bwa-endtoend', 'bowtie2-endtoend']
 	read_size = int(read_size)
-	pdf_plots_figures = []
-	pdf_tables_figures = []
+
+	#label distribution table
+	print("Generate label distribution graph")
+	draw_report_tables(aln_tool_list, src_dir, data, read_size)
 
 	#plots
 	for aln_tool in aln_tool_list:
@@ -215,9 +249,7 @@ if __name__ == '__main__':
 		info_file = src_dir+'/{0}/Pauto/ids/{1}_ecv_0_reads.info'.format(aln_tool, data)
 		label_array = get_label_array(info_file, read_size)
 		draw_report_imgs(aln_tool, label_array, src_dir, data, read_size)
-	regression_plot()
 	
-	#label distribution table
-	print("Generate label distribution graph")
-	draw_report_tables(aln_tool_list, src_dir, data, read_size)
+	#regression_plot()
 	save_to_pdf(all_pdf_fpath)
+	save_to_html(src_dir+'/report.html')
