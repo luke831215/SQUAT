@@ -61,7 +61,7 @@ if [[ $8 != "bwaOnly" ]]; then
 	ln -s ${REFLOC} scaffolds.fasta
 	${SRCDIR}/bowtie2/bowtie2-build scaffolds.fasta ${DATA} > build.log
 	${SRCDIR}/bowtie2/bowtie2 -p ${MAXPROCESS} --local -x ${DATA} -U ${DATA}_ecv.fastq -S Pauto/${DATA}_ecv_all.sam -k 20 --omit-sec-seq --reorder > ${DATA}_ecv_all.log
-	bash ${SCRIPTDIR}/bowtie2_benchmark.sh ${DATA}_ecv scaffolds auto I
+	bash ${SCRIPTDIR}/bowtie2_benchmark_v2.sh ${DATA}_ecv scaffolds auto I
 
 	#bowtie2 - end to end
 	echo 'bowtie2 - end to end'
@@ -75,8 +75,8 @@ if [[ $8 != "bwaOnly" ]]; then
 	ln -s ${ECVLOC} .
 	ln -s ${REFLOC} scaffolds.fasta
 	${SRCDIR}/bowtie2/bowtie2-build scaffolds.fasta ${DATA} > build.log
-	${SRCDIR}/bowtie2/bowtie2 -p ${MAXPROCESS} -x ${DATA} -U ${DATA}_ecv.fastq -S Pauto/${DATA}_ecv_all.sam -k 20 --omit-sec-seq --reorder --score-min > ${DATA}_ecv_all.log
-	bash ${SCRIPTDIR}/bowtie2_benchmark.sh ${DATA}_ecv scaffolds auto I
+	${SRCDIR}/bowtie2/bowtie2 -p ${MAXPROCESS} -x ${DATA} -U ${DATA}_ecv.fastq -S Pauto/${DATA}_ecv_all.sam -k 20 --omit-sec-seq --reorder > ${DATA}_ecv_all.log
+	bash ${SCRIPTDIR}/bowtie2_benchmark_v2.sh ${DATA}_ecv scaffolds auto I
 
 fi
 
@@ -92,7 +92,7 @@ if [[ $8 != "bowtie2Only" ]]; then
 	cd ${BWADIR};
 	ln -s ${ECVLOC} .
 	ln -s ${REFLOC} scaffolds.fasta
-	bash ${SCRIPTDIR}/bwa_benchmark_v6.sh ${DATA}_ecv scaffolds auto P
+	bash ${SCRIPTDIR}/bwa_mem_v1.sh ${DATA}_ecv scaffolds auto P
 	
 	#bwa-end to end
 	echo 'bwa - end to end'
@@ -105,6 +105,6 @@ if [[ $8 != "bowtie2Only" ]]; then
 	cd ${BWADIR};
 	ln -s ${ECVLOC} .
 	ln -s ${REFLOC} scaffolds.fasta
-	bash ${SCRIPTDIR}/bwa_benchmark_v4.sh ${DATA}_ecv scaffolds auto P
+	bash ${SCRIPTDIR}/bwa_endtoend_v2.sh ${DATA}_ecv scaffolds auto P
 
 fi

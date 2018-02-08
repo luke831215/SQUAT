@@ -1,0 +1,77 @@
+<html>
+<head>
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+  <title>Report</title>
+  <link rel="stylesheet" type="text/css" href="link/template.css">
+  <link rel="stylesheet" type="text/css" href="link/template.js">
+
+</head>
+
+</style></head>
+
+<body>
+  <div class="header">
+    <div id="header_title">
+      SQUAT Report
+    </div>
+    <div id="header_filename">
+      Mon 31 Jan 2018<br/>D1_ecv.fastq
+    </div>
+  </div>
+  
+  <div class="summary">
+    <h2 style="text-align: center">Summary</h2>
+    <button class="accordion">Section 1: Data Quality Assessment</button>
+      <div class="panel">
+        <ul>
+          <li><a>Basic Quality</a></li>
+          <li><a href='#F0'>Label Distribution Table</a></li>
+          <li><a href='#F1'>Label Distribution Barplot</a></li>
+        </ul>
+      </div>
+
+    <button class="accordion">Section 2: BWA-MEM Analysis</button>
+      <div class="panel">
+        <ul>
+          <li><a href='#F2'>Number of mismatch</a></li>
+          <li><a href='#F3'>Clip ratio</a></li>
+          <li><a href='#F4'>Alignment score of P reads</a></li>
+          <li><a href='#F5'>Alignment score of S reads</a></li>
+          <li><a href='#F6'>Alignment score of C reads</a></li>
+        </ul>
+      </div>
+
+    <button class="accordion">Section 3: Bowtie2-local Analysis</button>
+      <div class="panel">
+        <ul>
+          <li>Number of mismatch</li>
+          <li>Clip ratio</li>
+          <li>Alignment score of P reads</li>
+          <li>Alignment score of S reads</li>
+          <li>Alignment score of C reads</li>
+        </ul>
+      </div>
+
+    <button class="accordion">Section 4: BWA-endtoend Analysis</button>
+      <div class="panel">
+        <ul>
+          <li>Number of mismatch</li>
+        </ul>
+      </div>
+
+    <button class="accordion">Section 5: Bowtie2-endtoend Analysis</button>
+      <div class="panel">
+        <ul>
+          <li>Number of mismatch</li>
+          <li>Alignment score of P reads</li>
+          <li>Alignment score of S reads</li>
+        </ul>
+      </div>
+
+  </div>
+
+  <div class="main">
+  </div>
+
+
+</body>

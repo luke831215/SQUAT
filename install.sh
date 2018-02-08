@@ -32,7 +32,7 @@ git clone https://github.com/refresh-bio/KMC.git
 cd KMC; make DISABLE_ASMLIB=true
 
 #compile kcnLandscape cpp
-cd ${INSTDIR}/libs/gen_kmer/kcnLandscape
+cd ${INSTDIR}/libs/kcnLandscape
 g++ histAnalyze.cpp -o histAnalyze
 
 #install python packages

@@ -4,7 +4,7 @@ set -e
 usage()
 {
 	echo -e "SQUAT: Sequencing Quality Assessment Tool"
-	echo -e "Usage: $0 [-o <output_dir>] [-r <read_name>] [-l <num_read>] [-i fastq_path] [-g <genome_path>]\n"
+	echo -e "Usage: $0 [-o <output_dir>] [-r <read_name>] [-i fastq_path] [-g <genome_path>]\n"
 	echo "Optional args:"
 	echo "-t	--thread	<int>	Number of thread to use" 
 }
@@ -56,7 +56,7 @@ while getopts ":o:r:g:i:t:h" opt; do
   esac
 done
 
-if [[ -z "$OUTDIR" || -z "$DATA" || -z "$READSIZE" || -z "$REFLOC" || -z "$ECVLOC" ]]; then
+if [[ -z "$OUTDIR" || -z "$DATA" || -z "$REFLOC" || -z "$ECVLOC" ]]; then
 	usage
 	exit 1
 fi
@@ -70,6 +70,11 @@ EXECDIR="$( cd "$(dirname "$0")" ; pwd)"
 #shift $((OPTIND-1))
 #echo "$@"
 
+#delete if output dir already exists
+if [ -d  ${OUTDIR} ]; then
+	rm -rf ${OUTDIR}
+fi
+
 #map reads to genome using alignment tools
 echo "map reads to genome using alignment tools"
 bash ${EXECDIR}/libs/run_mapping.sh $EXECDIR $OUTDIR $DATA $READSIZE $REFLOC $ECVLOC $MAXPROC
@@ -80,5 +85,5 @@ bash ${EXECDIR}/libs/run_kcn.sh $OUTDIR/kcn_histo $DATA $ECVLOC
 
 #concatenate tables and imgs to report.pdf
 echo "Generate reports"
-mkdir ${OUTDIR}/imgs
-python ${EXECDIR}/libs/gen_report.py ${OUTDIR} ${DATA} ${READSIZE}
+mkdir -p ${OUTDIR}/imgs
+python -i ${EXECDIR}/gen_report.py ${OUTDIR} ${ECVLOC} ${DATA} ${READSIZE}
