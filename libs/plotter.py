@@ -2,33 +2,93 @@ import os
 import re
 import numpy as np
 import matplotlib.pyplot as plt 
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from matplotlib import gridspec
 import glob
 import base64
 from matplotlib.backends.backend_pdf import PdfPages
 from bs4 import BeautifulSoup
+import xlsxwriter
+import csv
 
-def save_to_html(all_html_fpath, template_fpath):
+
+def save_to_csv(label_distribution, src_dir, aln_tool_list):
+	with open('{}/label_dis/label_dis.csv'.format(src_dir), 'w') as w:
+		cnt = 0
+		writer = csv.writer(w, delimiter=',')
+		writer.writerow(['']+aln_tool_list)
+		for label in ['P', 'S', 'C', 'O', 'M', 'F', 'N']:
+			writer.writerow([label] + list(label_distribution[cnt]))
+			cnt += 1
+
+
+def save_to_xls_failed(label_distribution, src_dir, aln_tool_list):
+	descriptions = ['P (Perfectly-mapped reads)', 'S (Reads with substitution error)', 'C (Reads that contain clips)', 'O (Reads with other error)',
+	'M (multi-mapped reads)', 'F (Unmapped reads)', 'N (Reads that contain N)']
+	stats = np.array([None] * len(aln_tool_list) * len(descriptions))
+	idx = 0
+	
+	#transform label_distribution from dict to list of shape (4, 8)
+	for aln_tool in label_distribution:
+		for label in label_distribution[aln_tool]:
+			stats[idx] = '{:.1%}'.format(label_distribution[aln_tool][label])
+			idx += 1
+
+	stats = list(np.ravel(stats).reshape(len(descriptions), len(aln_tool_list)))
+	num_row, num_col = len(stats), len(stats[0])
+
+	workbook = xlsxwriter.Workbook('{}/label_dis.xls'.format(src_dir))
+	worksheet = workbook.add_worksheet('label_distribution')
+	#write header
+	header_row = ['Label Distribution Table'] * 2 + aln_tool_list
+	worksheet.add_table('A2:F8', {
+		'columns': [{'header': header} for header in header_row],
+		'first_column': True
+		})
+	print(stats[0])
+	worksheet.write_row('A2', ['Uniquely-mapped Reads', descriptions[0]] + list(stats[0]))
+	worksheet.write_row('A3', ['Uniquely-mapped Reads', descriptions[0]] + list(stats[1]))
+	worksheet.write_row('A4', ['Uniquely-mapped Reads', descriptions[0]] + list(stats[2]))
+	worksheet.write_row('A5', ['Uniquely-mapped Reads', descriptions[0]] + list(stats[3]))
+	worksheet.write_row('A6', descriptions[4] * 2 + stats[4])
+	worksheet.write_row('A7', descriptions[5] * 2 + stats[5])
+	worksheet.write_row('A8', descriptions[6] * 2 + stats[6])
+
+	worksheet.merge_range('A1:B1', 'Label Distribution Table')
+	for i in range(4, 7):
+		worksheet.merge_range('A{0}:B{0}'.format(i+2), descriptions[i])
+
+	workbook.close()
+	#worksheet.write({'data': stats, 'columns'}:[{'header': aln_tool} for aln_tool in aln_tool_list])
+
+
+def fill_in_table(div):
+	pass
+
+def save_to_html(all_html_fpath, template_fpath, aln_tool_list):
 	"""concat all figures into report.html by inserting figures into template.html"""
 
 	src_dir = os.path.dirname(all_html_fpath)
 	with open(template_fpath) as file:
 		soup = BeautifulSoup(file, "lxml")
 		main_div = soup.find('div', class_='main')
+		#set up label dis. table
+		fill_in_table(main_div)
+
 		cnt = 0
-		#for table in table_figures:
-		files = glob.glob('{}/imgs/*.png'.format(src_dir))
-		files.sort(key=os.path.getmtime)
-		for img_name in files:
-			data_uri = base64.b64encode(open(img_name, 'rb').read()).decode('utf-8').replace('\n', '')
-			new_div = soup.new_tag("div", id="F{}".format(cnt))
-			img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri))
-			new_div.append(img_src)
-			main_div.append(new_div)
-			cnt += 1
+		for aln_tool in ['label_dis'] + aln_tool_list:
+			files = glob.glob('{0}/{1}/imgs/*.png'.format(src_dir, aln_tool))
+			files.sort(key=os.path.getmtime)
+			for img_name in files:
+				data_uri = base64.b64encode(open(img_name, 'rb').read()).decode('utf-8').replace('\n', '')
+				new_div = soup.new_tag("div", id="{0}-{1}".format(aln_tool, cnt))
+				img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri))
+				new_div.append(img_src)
+				main_div.append(new_div)
+				cnt += 1
+
 		with open(all_html_fpath, 'w') as w:
 			w.write(str(soup))
+
 
 def save_to_pdf(all_pdf_fpath, plot_figures, table_figures):
 	"""concat all figures into report.pdf"""
@@ -55,7 +115,7 @@ def save_to_pdf(all_pdf_fpath, plot_figures, table_figures):
 	plt.close('all')  # closing all open figures
 
 
-def plot_sam_dis(src_dir, data, align_tool, label_dis, plot_figures, xlabel='', label=''):
+def plot_sam_dis(src_dir, data, aln_tool, label_dis, plot_figures, xlabel='', label=''):
 	hist, bins = np.histogram(data, bins=20)
 	
 	fig = plt.figure(figsize=(15, 10))
@@ -71,9 +131,9 @@ def plot_sam_dis(src_dir, data, align_tool, label_dis, plot_figures, xlabel='', 
 	ax.set_ylabel('Percentile')
 	
 	if label:
-		title = '{0} distribution of {1} reads\n{2}'.format(xlabel, label, align_tool)
+		title = '{0} distribution of {1} reads\n{2}'.format(xlabel, label, aln_tool)
 		ax.set_title(title)
-		do_label_dis_bar(ax2, align_tool, label_dis, label)
+		do_label_dis_bar(ax2, aln_tool, label_dis, label)
 
 	#im = plt.imread(insert_fig)
 	#ax.imshow(im)
@@ -81,12 +141,12 @@ def plot_sam_dis(src_dir, data, align_tool, label_dis, plot_figures, xlabel='', 
 
 	plot_figures.append(fig)
 
-	title = '{0} distribution of {1} reads {2}'.format(xlabel, label, align_tool)
-	plt.savefig('{0}/imgs/{1}.png'.format(src_dir, title.replace(" ", "_")))
+	title = '{0} distribution of {1} reads {2}'.format(xlabel, label, aln_tool)
+	plt.savefig('{0}/{1}/imgs/{2}.png'.format(src_dir, aln_tool, title.replace(" ", "_")))
 	plt.close()
 
 
-def do_label_dis_bar(ax, align_tool, label_dis, crt_label=''):
+def do_label_dis_bar(ax, aln_tool, label_dis, crt_label=''):
 	colors ='rgbymc'
 	patch_handles = {}
 	x_labels = ['Mappable', 'Repeat', 'Unmapped']
@@ -133,24 +193,33 @@ def do_label_dis_bar(ax, align_tool, label_dis, crt_label=''):
 	ax.set_xticklabels(x_labels)
 	ax.set_ylabel('Percentage')
 	ax.legend(loc=1)
-	ax.set_title('{}'.format(align_tool))
-	return ax.get_figure()
+	ax.set_title('{}'.format(aln_tool))
+	#return ax.get_figure()
 
+
+def add_text(ax, text, fontsize='x-large', weight='medium'):
+	ax.set_xticklabels([])
+	ax.set_yticklabels([])
+	ax.xaxis.set_ticks_position('none')
+	ax.yaxis.set_ticks_position('none')
+	ax.text(0.5, 0.5, text, fontsize=fontsize, va="center", ha='center', weight=weight)
 
 def do_label_dis_table(label_distribution, src_dir, aln_tool_list, table_figures):
-	descriptions = ['N (contain N)', 'F (unmapped)', 'M (multi-mapped)', 'P (no error)', 'S (substitution error)', 'C (contain clips)', 'O (other error)', 'X (special)']
+	descriptions = ['P (no error)', 'S (substitution error)', 'C (contain clips)', 'O (other error)', 'M (multi-mapped)', 'F (unmapped)', 'N (contain N)']
 	stats = np.array([None] * len(aln_tool_list) * len(descriptions))
 	idx = 0
+	axes = []
 	
-	#transform label_distribution from dict to list of shape (4, 8)
+	#transform label_distribution from dict to list of shape (7, 4)
 	any_key = list(label_distribution.keys())[0]
-	for label in label_distribution[any_key]:
-		for align_tool in label_distribution:
-			stats[idx] = '{:.1%}'.format(label_distribution[align_tool][label])
+	for label in ['P', 'S', 'C', 'O', 'M', 'F', 'N']:
+		for aln_tool in label_distribution:
+			stats[idx] = '{:.1%}'.format(label_distribution[aln_tool][label])
 			idx += 1
 
 	stats = np.ravel(stats).reshape(len(descriptions), len(aln_tool_list))
 
+	"""
 	fig, ax = plt.subplots(figsize=(15,10))
 	ax.axis('off')
 	the_table = ax.table(cellText=stats,
@@ -163,12 +232,47 @@ def do_label_dis_table(label_distribution, src_dir, aln_tool_list, table_figures
 	the_table.scale(1, 4)
 	the_table.set_fontsize(15)
 	plt.subplots_adjust(left=0.15)
+	"""
 
-	title = 'Label Distribution Table'
+
+	fig = plt.figure(figsize=(15, 10))
+	num_col = len(aln_tool_list)+3
+	num_row = 8
+	gs = gridspec.GridSpec(num_row, num_col, width_ratios=[0.8, 1.1, 1.1] + [1]*(num_col-3))
+	# set zero spacing between axes.
+	gs.update(wspace=0, hspace=0)
+
+	#Header 
+	add_text(plt.subplot(gs[0, :3]), 'Label Distribution Table', weight='bold')
+	
+	#Unique reads
+	add_text(plt.subplot(gs[1:5, 0]), 'Uniquely\nmapped\nReads')
+	#P S C O
+	add_text(plt.subplot(gs[1, 1:3]), '(P) Perfectly-mapped Reads')
+	add_text(plt.subplot(gs[2, 1:3]), '(S) Reads with Substitution Error')
+	add_text(plt.subplot(gs[3, 1:3]), '(C) Reads that Contain Clips')
+	add_text(plt.subplot(gs[4, 1:3]), '(O) Reads that contain other error')
+	#M U F
+	add_text(plt.subplot(gs[5, 0:3]), '(M) Multi-mapped Reads')
+	add_text(plt.subplot(gs[6, 0:3]), '(F) Unmapped Reads')
+	add_text(plt.subplot(gs[7, 0:3]), '(N) Reads that contain N')
+
+	#columns of stats from each aligner
+	for j in range(3, num_col):
+		aln_tool = aln_tool_list[j-3].replace('-', '\n')
+		add_text(plt.subplot(gs[0, j]), aln_tool)
+		for i in range(1, num_row):
+			add_text(plt.subplot(gs[i, j]), stats[i-1, j-3], weight='bold')
+			
+
+	
+	#title = 'Label Distribution Table'
 	#plt.title(title, fontdict={'fontsize': 30})
 	table_figures.append(fig)
-	plt.savefig('{0}/imgs/{1}.png'.format(src_dir, title.replace(" ", "_")))
+	plt.savefig('{0}/label_dis/table.png'.format(src_dir))
 	plt.close()
+
+	save_to_csv(stats, src_dir, aln_tool_list)
 
 
 def do_basic_stats(table_figures, ecv_fpath):
@@ -178,7 +282,7 @@ def do_basic_stats(table_figures, ecv_fpath):
 def do_nm(aln_tool, align_array, label_array, read_size):
 	"""plot mismatch in unique reads with sub. error"""
 
-	cnt = 0
+	cnt = 0	
 	nm_list = np.zeros(read_size)
 
 	for _id in np.where(label_array == 'S')[0]:

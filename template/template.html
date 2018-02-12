@@ -1,13 +1,14 @@
-<html>
-<head>
-  <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
   <title>Report</title>
   <link rel="stylesheet" type="text/css" href="link/template.css">
-  <link rel="stylesheet" type="text/css" href="link/template.js">
+  <script type="text/javascript"> </script>
+  <script src="link/template.js"></script>
+  
 
 </head>
 
-</style></head>
+
 
 <body>
   <div class="header">
@@ -15,63 +16,122 @@
       SQUAT Report
     </div>
     <div id="header_filename">
-      Mon 31 Jan 2018<br/>D1_ecv.fastq
+      To be filled
     </div>
   </div>
-  
+
   <div class="summary">
     <h2 style="text-align: center">Summary</h2>
     <button class="accordion">Section 1: Data Quality Assessment</button>
-      <div class="panel">
-        <ul>
-          <li><a>Basic Quality</a></li>
-          <li><a href='#F0'>Label Distribution Table</a></li>
-          <li><a href='#F1'>Label Distribution Barplot</a></li>
-        </ul>
-      </div>
+    <div class="panel" style="display: none;">
+      <ul>
+        <li><a>Basic Quality</a></li>
+        <li><a href="#F0">Label Distribution Table</a></li>
+        <li><a href="#F1">Label Distribution Barplot</a></li>
+      </ul>
+    </div>
 
     <button class="accordion">Section 2: BWA-MEM Analysis</button>
-      <div class="panel">
-        <ul>
-          <li><a href='#F2'>Number of mismatch</a></li>
-          <li><a href='#F3'>Clip ratio</a></li>
-          <li><a href='#F4'>Alignment score of P reads</a></li>
-          <li><a href='#F5'>Alignment score of S reads</a></li>
-          <li><a href='#F6'>Alignment score of C reads</a></li>
-        </ul>
-      </div>
+    <div class="panel" style="display: none;">
+      <ul>
+        <li><a href="#F2">Number of mismatch</a></li>
+        <li><a href="#F3">Clip ratio</a></li>
+        <li><a href="#F4">Alignment score of P reads</a></li>
+        <li><a href="#F5">Alignment score of S reads</a></li>
+        <li><a href="#F6">Alignment score of C reads</a></li>
+      </ul>
+    </div>
 
     <button class="accordion">Section 3: Bowtie2-local Analysis</button>
-      <div class="panel">
-        <ul>
-          <li>Number of mismatch</li>
-          <li>Clip ratio</li>
-          <li>Alignment score of P reads</li>
-          <li>Alignment score of S reads</li>
-          <li>Alignment score of C reads</li>
-        </ul>
-      </div>
+    <div class="panel">
+      <ul>
+        <li>Number of mismatch</li>
+        <li>Clip ratio</li>
+        <li>Alignment score of P reads</li>
+        <li>Alignment score of S reads</li>
+        <li>Alignment score of C reads</li>
+      </ul>
+    </div>
 
     <button class="accordion">Section 4: BWA-endtoend Analysis</button>
-      <div class="panel">
-        <ul>
-          <li>Number of mismatch</li>
-        </ul>
-      </div>
+    <div class="panel">
+      <ul>
+        <li>Number of mismatch</li>
+      </ul>
+    </div>
 
     <button class="accordion">Section 5: Bowtie2-endtoend Analysis</button>
-      <div class="panel">
-        <ul>
-          <li>Number of mismatch</li>
-          <li>Alignment score of P reads</li>
-          <li>Alignment score of S reads</li>
-        </ul>
-      </div>
-
+    <div class="panel">
+      <ul>
+        <li>Number of mismatch</li>
+        <li>Alignment score of P reads</li>
+        <li>Alignment score of S reads</li>
+      </ul>
+    </div>
   </div>
-
+  
   <div class="main">
+    <div id="dis_table">
+      <table>
+        <tr>
+          <th colspan="2"><bold>Label Distribution Table</bold></th>
+          <th>BWA<br>MEM</th>
+          <th>Bowtie2<br>local</th>
+          <th>BWA<br>endtoend</th>
+          <th>Bowtie2<br>endtoend</th>
+        </tr>
+        <tr>
+          <td rowspan="4" width=15%>Uniquely-mapped Reads</td>
+          <td>P (Perfectly-mapped reads)</td>
+          <td id = "P1" class = "value_col" ></td>
+          <td id = "P2" class = "value_col" ></td>
+          <td id = "P3" class = "value_col" ></td>
+          <td id = "P4" class = "value_col" ></td>
+        </tr>
+        <tr>
+          <td>S (Reads with substitution error)</td>
+          <td id = "S1" class = "value_col"></td>
+          <td id = "S2" class = "value_col"></td>
+          <td id = "S3" class = "value_col"></td>
+          <td id = "S4" class = "value_col"></td>
+        </tr>
+        <tr>
+          <td>C (Reads that contain clips)</td>
+          <td id = "C1" class = "value_col"></td>
+          <td id = "C2" class = "value_col"></td>
+          <td id = "C3" class = "value_col"></td>
+          <td id = "C4" class = "value_col"></td>
+        </tr>
+        <tr>
+          <td>O (Reads that contain other error)</td>
+          <td id = "O1" class = "value_col"></td>
+          <td id = "O2" class = "value_col"></td>
+          <td id = "O3" class = "value_col"></td>
+          <td id = "O4" class = "value_col"></td>
+        </tr>
+        <tr>
+          <td colspan="2">M(Multi-mapped reads)</td>
+          <td id = "M1" class = "value_col"></td>
+          <td id = "M2" class = "value_col"></td>
+          <td id = "M3" class = "value_col"></td>
+          <td id = "M4" class = "value_col"></td>
+        </tr>
+        <tr>
+          <td colspan="2">F(Unmapped reads)</td>
+          <td id = "F1" class = "value_col"></td>
+          <td id = "F2" class = "value_col"></td>
+          <td id = "F3" class = "value_col"></td>
+          <td id = "F4" class = "value_col"></td>
+        </tr>
+        <tr>
+          <td colspan="2">N (Reads that contain N)</td>
+          <td id = "F1" class = "value_col"></td>
+          <td id = "F2" class = "value_col"></td>
+          <td id = "F3" class = "value_col"></td>
+          <td id = "F4" class = "value_col"></td>
+        </tr>
+      </table>
+    </div>
   </div>
-
 
 </body>

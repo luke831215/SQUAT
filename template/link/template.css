@@ -104,3 +104,25 @@ li a:hover:not(.active) {
     background-color: #555;
     color: white;
 }
+
+#dis_table {
+
+}
+
+table {
+    font-family: sans-serif;
+    border-collapse: collapse;
+    /*table-layout: fixed;*/
+    margin: 0 auto;
+    width: 90%;
+}
+
+th, td {
+  border: 1px solid ;
+  padding: 5px;
+  text-align: center;
+}
+
+td.value_col {
+  width: 10%;
+}

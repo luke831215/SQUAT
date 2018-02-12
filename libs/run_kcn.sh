@@ -11,7 +11,7 @@ EXECDIR="$( cd "$(dirname "$0")" ; pwd)"
 OUTDIR=$1
 DATA=$2
 ECVLOC=$3
-UTILDIR=${EXECDIR}/gen_kmer
+UTILDIR=${EXECDIR}
 
 mkdir -p ${OUTDIR}
 #cd ${UTILDIR}/kcnLandscape

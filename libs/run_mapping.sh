@@ -44,7 +44,7 @@ REFLOC=$5
 ECVLOC=$6
 MAXPROCESS=$7
 
-mkdir -p ${OUTDIR}/imgs
+#mkdir -p ${OUTDIR}/imgs
 
 if [[ $8 != "bwaOnly" ]]; then
 
@@ -55,7 +55,7 @@ if [[ $8 != "bwaOnly" ]]; then
 	if [ -d  ${BOWTIEDIR} ]; then
 		rm -rf ${BOWTIEDIR}
 	fi
-	mkdir -p ${BOWTIEDIR}
+	mkdir -p ${BOWTIEDIR}/imgs
 	cd ${BOWTIEDIR}; mkdir -p Pauto
 	ln -s ${ECVLOC} .
 	ln -s ${REFLOC} scaffolds.fasta
@@ -70,7 +70,7 @@ if [[ $8 != "bwaOnly" ]]; then
 	if [ -d  ${BOWTIEDIR} ]; then
 		rm -rf ${BOWTIEDIR}
 	fi
-	mkdir -p ${BOWTIEDIR}
+	mkdir -p ${BOWTIEDIR}/imgs
 	cd ${BOWTIEDIR}; mkdir -p Pauto
 	ln -s ${ECVLOC} .
 	ln -s ${REFLOC} scaffolds.fasta
@@ -88,7 +88,7 @@ if [[ $8 != "bowtie2Only" ]]; then
 	if [ -d  ${BWADIR} ]; then
 		rm -rf ${BWADIR}
 	fi
-	mkdir -p ${BWADIR}
+	mkdir -p ${BWADIR}/imgs
 	cd ${BWADIR};
 	ln -s ${ECVLOC} .
 	ln -s ${REFLOC} scaffolds.fasta
@@ -101,10 +101,10 @@ if [[ $8 != "bowtie2Only" ]]; then
 	if [ -d  ${BWADIR} ]; then
 		rm -rf ${BWADIR}
 	fi
-	mkdir -p ${BWADIR}
+	mkdir -p ${BWADIR}/imgs
 	cd ${BWADIR};
 	ln -s ${ECVLOC} .
 	ln -s ${REFLOC} scaffolds.fasta
-	bash ${SCRIPTDIR}/bwa_endtoend_v2.sh ${DATA}_ecv scaffolds auto P
+	bash ${SCRIPTDIR}/bwa_endtoend_v3.sh ${DATA}_ecv scaffolds auto P
 
 fi

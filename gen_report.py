@@ -62,7 +62,7 @@ def get_label_dis_bar(label_distribution, src_dir, labels, aln_tool_list, plot_f
 		ax = fig.add_subplot(2, 2, i+1)
 		plotter.do_label_dis_bar(ax, aln_tool_list[i], label_distribution[aln_tool_list[i]])
 
-	fig.savefig('{}/imgs/dis_bar.png'.format(src_dir))
+	fig.savefig('{}/label_dis/bar.png'.format(src_dir))
 	plot_figures.append(fig)
 
 
@@ -121,7 +121,7 @@ if __name__ == '__main__':
 	all_pdf_fpath = src_dir+'/report.pdf'
 	all_html_fpath = src_dir+'/report.html'
 	aln_tool_list = ['bwa-mem', 'bowtie2-local', 'bwa-endtoend', 'bowtie2-endtoend'] #kart
-	labels = ['N', 'F', 'M', 'P', 'S', 'C', 'O', 'X']
+	labels = ['N', 'F', 'M', 'P', 'S', 'C', 'O']
 	read_size = int(read_size)
 	plot_figures = []
 	table_figures = []
@@ -142,6 +142,6 @@ if __name__ == '__main__':
 		draw_report_imgs(aln_tool, label_array, src_dir, data, read_size, plot_figures)
 	
 	#regression_plot()
-	template_fpath = os.path.dirname(sys.argv[0])+'/template.html'
+	template_fpath = os.path.dirname(sys.argv[0])+'/template/template.html'
 	plotter.save_to_pdf(all_pdf_fpath, plot_figures, table_figures)
-	plotter.save_to_html(src_dir+'/report.html', template_fpath)
+	plotter.save_to_html(all_html_fpath, template_fpath, aln_tool_list)

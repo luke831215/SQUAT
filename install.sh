@@ -27,7 +27,7 @@ mv bwa-0.7.15 bwa
 cd bwa; make
 
 #install KMC3
-cd ${INSTDIR}/libs/gen_kmer
+cd ${INSTDIR}/libs
 git clone https://github.com/refresh-bio/KMC.git
 cd KMC; make DISABLE_ASMLIB=true
 
@@ -37,4 +37,4 @@ g++ histAnalyze.cpp -o histAnalyze
 
 #install python packages
 echo "install python packages"
-pip install fpdf
+pip install fpdf xlsxwriter
