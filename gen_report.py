@@ -129,7 +129,7 @@ if __name__ == '__main__':
 	#label distribution table
 	print("Generate label distribution graph")
 	label_distribution = get_label_distribution(labels, aln_tool_list, src_dir, data, read_size)
-	draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath)
+	label_dis_stats = draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath)
 
 	#save label distribution bar, one img for each aligner
 	get_label_dis_bar(label_distribution, src_dir, labels, aln_tool_list, plot_figures)
@@ -144,4 +144,4 @@ if __name__ == '__main__':
 	#regression_plot()
 	template_fpath = os.path.dirname(sys.argv[0])+'/template/template.html'
 	plotter.save_to_pdf(all_pdf_fpath, plot_figures, table_figures)
-	plotter.save_to_html(all_html_fpath, template_fpath, aln_tool_list)
+	plotter.save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distribution)

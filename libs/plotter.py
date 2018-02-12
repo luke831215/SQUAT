@@ -10,61 +10,30 @@ from bs4 import BeautifulSoup
 import xlsxwriter
 import csv
 
+labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N']
 
-def save_to_csv(label_distribution, src_dir, aln_tool_list):
+def save_to_csv(stats, src_dir, aln_tool_list):
 	with open('{}/label_dis/label_dis.csv'.format(src_dir), 'w') as w:
 		cnt = 0
 		writer = csv.writer(w, delimiter=',')
 		writer.writerow(['']+aln_tool_list)
-		for label in ['P', 'S', 'C', 'O', 'M', 'F', 'N']:
-			writer.writerow([label] + list(label_distribution[cnt]))
+		for label in labels:
+			writer.writerow([label] + list(stats[cnt]))
 			cnt += 1
 
 
-def save_to_xls_failed(label_distribution, src_dir, aln_tool_list):
-	descriptions = ['P (Perfectly-mapped reads)', 'S (Reads with substitution error)', 'C (Reads that contain clips)', 'O (Reads with other error)',
-	'M (multi-mapped reads)', 'F (Unmapped reads)', 'N (Reads that contain N)']
-	stats = np.array([None] * len(aln_tool_list) * len(descriptions))
-	idx = 0
-	
-	#transform label_distribution from dict to list of shape (4, 8)
-	for aln_tool in label_distribution:
-		for label in label_distribution[aln_tool]:
-			stats[idx] = '{:.1%}'.format(label_distribution[aln_tool][label])
-			idx += 1
-
-	stats = list(np.ravel(stats).reshape(len(descriptions), len(aln_tool_list)))
-	num_row, num_col = len(stats), len(stats[0])
-
-	workbook = xlsxwriter.Workbook('{}/label_dis.xls'.format(src_dir))
-	worksheet = workbook.add_worksheet('label_distribution')
-	#write header
-	header_row = ['Label Distribution Table'] * 2 + aln_tool_list
-	worksheet.add_table('A2:F8', {
-		'columns': [{'header': header} for header in header_row],
-		'first_column': True
-		})
-	print(stats[0])
-	worksheet.write_row('A2', ['Uniquely-mapped Reads', descriptions[0]] + list(stats[0]))
-	worksheet.write_row('A3', ['Uniquely-mapped Reads', descriptions[0]] + list(stats[1]))
-	worksheet.write_row('A4', ['Uniquely-mapped Reads', descriptions[0]] + list(stats[2]))
-	worksheet.write_row('A5', ['Uniquely-mapped Reads', descriptions[0]] + list(stats[3]))
-	worksheet.write_row('A6', descriptions[4] * 2 + stats[4])
-	worksheet.write_row('A7', descriptions[5] * 2 + stats[5])
-	worksheet.write_row('A8', descriptions[6] * 2 + stats[6])
-
-	worksheet.merge_range('A1:B1', 'Label Distribution Table')
-	for i in range(4, 7):
-		worksheet.merge_range('A{0}:B{0}'.format(i+2), descriptions[i])
-
-	workbook.close()
-	#worksheet.write({'data': stats, 'columns'}:[{'header': aln_tool} for aln_tool in aln_tool_list])
+def fill_in_table(stats, main_div):
+	for i in range(len(stats)):
+		for j in range(len(stats[0])):
+			cell = main_div.find('td', id='{0}{1}'.format(labels[i], j+1))
+			try:
+				cell.string = stats[i][j]
+			except:
+				print(i, j)
+				return
 
 
-def fill_in_table(div):
-	pass
-
-def save_to_html(all_html_fpath, template_fpath, aln_tool_list):
+def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distribution):
 	"""concat all figures into report.html by inserting figures into template.html"""
 
 	src_dir = os.path.dirname(all_html_fpath)
@@ -72,7 +41,7 @@ def save_to_html(all_html_fpath, template_fpath, aln_tool_list):
 		soup = BeautifulSoup(file, "lxml")
 		main_div = soup.find('div', class_='main')
 		#set up label dis. table
-		fill_in_table(main_div)
+		fill_in_table(flatten(label_distribution, aln_tool_list), main_div)
 
 		cnt = 0
 		for aln_tool in ['label_dis'] + aln_tool_list:
@@ -80,7 +49,7 @@ def save_to_html(all_html_fpath, template_fpath, aln_tool_list):
 			files.sort(key=os.path.getmtime)
 			for img_name in files:
 				data_uri = base64.b64encode(open(img_name, 'rb').read()).decode('utf-8').replace('\n', '')
-				new_div = soup.new_tag("div", id="{0}-{1}".format(aln_tool, cnt))
+				new_div = soup.new_tag("div", id="inner", class_="{0}-{1}".format(aln_tool, cnt))
 				img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri))
 				new_div.append(img_src)
 				main_div.append(new_div)
@@ -204,40 +173,28 @@ def add_text(ax, text, fontsize='x-large', weight='medium'):
 	ax.yaxis.set_ticks_position('none')
 	ax.text(0.5, 0.5, text, fontsize=fontsize, va="center", ha='center', weight=weight)
 
-def do_label_dis_table(label_distribution, src_dir, aln_tool_list, table_figures):
-	descriptions = ['P (no error)', 'S (substitution error)', 'C (contain clips)', 'O (other error)', 'M (multi-mapped)', 'F (unmapped)', 'N (contain N)']
-	stats = np.array([None] * len(aln_tool_list) * len(descriptions))
-	idx = 0
-	axes = []
-	
-	#transform label_distribution from dict to list of shape (7, 4)
+
+def flatten(label_distribution, aln_tool_list):
+	stats = np.array([None] * len(aln_tool_list) * len(labels))
 	any_key = list(label_distribution.keys())[0]
-	for label in ['P', 'S', 'C', 'O', 'M', 'F', 'N']:
-		for aln_tool in label_distribution:
+	idx = 0
+
+	for label in labels:
+		for aln_tool in aln_tool_list:
 			stats[idx] = '{:.1%}'.format(label_distribution[aln_tool][label])
 			idx += 1
 
-	stats = np.ravel(stats).reshape(len(descriptions), len(aln_tool_list))
-
-	"""
-	fig, ax = plt.subplots(figsize=(15,10))
-	ax.axis('off')
-	the_table = ax.table(cellText=stats,
-						 rowLabels=descriptions,
-						 colLabels=aln_tool_list,
-						 colWidths=[0.15]*4,
-						 loc='center',
-						 cellLoc='center'
-						)
-	the_table.scale(1, 4)
-	the_table.set_fontsize(15)
-	plt.subplots_adjust(left=0.15)
-	"""
+	#7*4 array
+	return np.ravel(stats).reshape(len(labels), len(aln_tool_list))
 
 
-	fig = plt.figure(figsize=(15, 10))
+def do_label_dis_table(label_dis, src_dir, aln_tool_list, table_figures):
+	descriptions = ['P (no error)', 'S (substitution error)', 'C (contain clips)', 'O (other error)', 'M (multi-mapped)', 'F (unmapped)', 'N (contain N)']
+	axes = []
 	num_col = len(aln_tool_list)+3
 	num_row = 8
+	
+	fig = plt.figure(figsize=(15, 10))
 	gs = gridspec.GridSpec(num_row, num_col, width_ratios=[0.8, 1.1, 1.1] + [1]*(num_col-3))
 	# set zero spacing between axes.
 	gs.update(wspace=0, hspace=0)
@@ -260,19 +217,19 @@ def do_label_dis_table(label_distribution, src_dir, aln_tool_list, table_figures
 	#columns of stats from each aligner
 	for j in range(3, num_col):
 		aln_tool = aln_tool_list[j-3].replace('-', '\n')
-		add_text(plt.subplot(gs[0, j]), aln_tool)
+		add_text(plt.subplot(gs[0, j]), aln_tool, weight='bold')
 		for i in range(1, num_row):
-			add_text(plt.subplot(gs[i, j]), stats[i-1, j-3], weight='bold')
+			add_text(plt.subplot(gs[i, j]), '{:.1%}'.format(label_dis[aln_tool_list[j-3]][labels[i-1]]))
 			
 
 	
 	#title = 'Label Distribution Table'
 	#plt.title(title, fontdict={'fontsize': 30})
 	table_figures.append(fig)
-	plt.savefig('{0}/label_dis/table.png'.format(src_dir))
+	plt.savefig('{0}/label_dis/imgs/table.png'.format(src_dir))
 	plt.close()
 
-	save_to_csv(stats, src_dir, aln_tool_list)
+	save_to_csv(flatten(label_dis, aln_tool_list), src_dir, aln_tool_list)
 
 
 def do_basic_stats(table_figures, ecv_fpath):

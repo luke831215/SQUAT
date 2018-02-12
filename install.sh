@@ -33,8 +33,7 @@ cd KMC; make DISABLE_ASMLIB=true
 
 #compile kcnLandscape cpp
 cd ${INSTDIR}/libs/kcnLandscape
-g++ histAnalyze.cpp -o histAnalyze
+g++ histoAnalyze.cpp -o histoAnalyze
 
 #install python packages
 echo "install python packages"
-pip install fpdf xlsxwriter

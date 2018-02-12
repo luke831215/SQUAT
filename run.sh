@@ -85,6 +85,6 @@ bash ${EXECDIR}/libs/run_kcn.sh $OUTDIR/kcn_histo $DATA $ECVLOC
 
 #concatenate tables and imgs to report.pdf
 echo "Generate reports"
-mkdir -p ${OUTDIR}/css
-mkdir -p ${OUTDIR}/label_dis
+cp -r ${EXECDIR}/template/link ${OUTDIR}/
+mkdir -p ${OUTDIR}/label_dis/imgs
 python -i ${EXECDIR}/gen_report.py ${OUTDIR} ${ECVLOC} ${DATA} ${READSIZE}
