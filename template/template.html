@@ -109,7 +109,7 @@
       color: white;
   }
 
-  #dis_table {
+  #label_dis_table {
     height: 600px;
     padding: 100px;
   }
@@ -133,7 +133,14 @@
     width: 10%;
   }
 
-  #inner {
+  .table a{
+    display:block;
+    text-decoration:none;
+  }
+
+  td.a:hover { background-color:#ccc; }
+
+  .inner {
     width: 80%;
     margin: 0 auto;
   }
@@ -143,19 +150,26 @@
 
 <script>
   //accordion toggle function
-  var acc = document.getElementsByClassName("accordion");
-  var i;
+  window.onload = function(){
+    var acc = document.getElementsByClassName("accordion");
+    var i;
 
-  for (i = 0; i < acc.length; i++) {
-      acc[i].addEventListener("click", function() {
-          this.classList.toggle("active");
-          var panel = this.nextElementSibling;
-          if (panel.style.display === "block") {
-              panel.style.display = "none";
-          } else {
-              panel.style.display = "block";
-          }
-      });
+    for (i = 0; i < acc.length; i++) {
+        acc[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var panel = this.nextElementSibling;
+            if (panel.style.display === "block") {
+                panel.style.display = "none";
+            } else {
+                panel.style.display = "block";
+            }
+        });
+    }
+  }
+
+  function link(url)
+  {
+    document.location.href = url;
   }
 </script>
 
@@ -175,53 +189,53 @@
     <div class="panel" style="display: none;">
       <ul>
         <li><a>Basic Quality</a></li>
-        <li><a href="#F0">Label Distribution Table</a></li>
-        <li><a href="#F1">Label Distribution Barplot</a></li>
+        <li><a href="#label_dis_table">Label Distribution Table</a></li>
+        <li><a href="#label_dis_bar">Label Distribution Barchart</a></li>
       </ul>
     </div>
 
     <button class="accordion">Section 2: BWA-MEM Analysis</button>
     <div class="panel" style="display: none;">
       <ul>
-        <li><a href="#F2">Number of mismatch</a></li>
-        <li><a href="#F3">Clip ratio</a></li>
-        <li><a href="#F4">Alignment score of P reads</a></li>
-        <li><a href="#F5">Alignment score of S reads</a></li>
-        <li><a href="#F6">Alignment score of C reads</a></li>
+        <li><a href="#bwa-mem-1">Mismatch ratio of S reads</a></li>
+        <li><a href="#bwa-mem-2">Clip ratio of C reads</a></li>
+        <li><a href="#bwa-mem-3">Alignment score of P reads</a></li>
+        <li><a href="#bwa-mem-4">Alignment score of S reads</a></li>
+        <li><a href="#bwa-mem-5">Alignment score of C reads</a></li>
       </ul>
     </div>
 
     <button class="accordion">Section 3: Bowtie2-local Analysis</button>
     <div class="panel">
       <ul>
-        <li>Number of mismatch</li>
-        <li>Clip ratio</li>
-        <li>Alignment score of P reads</li>
-        <li>Alignment score of S reads</li>
-        <li>Alignment score of C reads</li>
+        <li><a href="#bowtie2-local-1">Mismatch ratio of S reads</a></li>
+        <li><a href="#bowtie2-local-2">Clip ratio of C reads</a></li>
+        <li><a href="#bowtie2-local-3">Alignment score of P reads</a></li>
+        <li><a href="#bowtie2-local-4">Alignment score of S reads</a></li>
+        <li><a href="#bowtie2-local-5">Alignment score of C reads</a></li>
       </ul>
     </div>
 
     <button class="accordion">Section 4: BWA-endtoend Analysis</button>
     <div class="panel">
       <ul>
-        <li>Number of mismatch</li>
+        <li><a href="#bwa-endtoend-1">Mismatch ratio of S reads</a></li>
       </ul>
     </div>
 
     <button class="accordion">Section 5: Bowtie2-endtoend Analysis</button>
     <div class="panel">
       <ul>
-        <li>Number of mismatch</li>
-        <li>Alignment score of P reads</li>
-        <li>Alignment score of S reads</li>
+        <li><a href="#bowtie2-endtoend-1">Mismatch ratio of S reads</a></li>
+        <li><a href="#bowtie2-endtoend-2">Alignment score of P reads</a></li>
+        <li><a href="#bowtie2-endtoend-3">Alignment score of S reads</a></li>
       </ul>
     </div>
   </div>
   
   <div class="main">
-    <div id="dis_table">
-      <table>
+    <div id="label_dis_table">
+      <table class="table">
         <tr>
           <th colspan="2"><bold>Label Distribution Table</bold></th>
           <th>BWA<br>MEM</th>
@@ -231,23 +245,23 @@
         </tr>
         <tr>
           <td rowspan="4" width=15%>Uniquely-mapped Reads</td>
-          <td>P (Perfectly-mapped reads)</td>
-          <td id = "P1" class = "value_col" ></td>
-          <td id = "P2" class = "value_col" ></td>
+          <td href="#">P (Perfectly-mapped reads)</td>
+          <td id = "P1" class="value_col a" OnClick="link('#bwa-mem-3')"><a href="#bwa-mem-3"></a></td>
+          <td id = "P2" class="value_col a" OnClick="link('#bowtie2-local-3')"><a href="#bowtie2-local-3"></a></td>
           <td id = "P3" class = "value_col" ></td>
-          <td id = "P4" class = "value_col" ></td>
+          <td id = "P4" class="value_col a" OnClick="link('#bowtie2-endtoend-2')"><a href="#bowtie2-endtoend-2"></a></td>
         </tr>
         <tr>
           <td>S (Reads with substitution error)</td>
-          <td id = "S1" class = "value_col"></td>
-          <td id = "S2" class = "value_col"></td>
-          <td id = "S3" class = "value_col"></td>
-          <td id = "S4" class = "value_col"></td>
+          <td id = "S1" class="value_col a" OnClick="link('#bwa-mem-1')"><a href="#bwa-mem-1"></a></td>
+          <td id = "S2" class="value_col a" OnClick="link('#bowtie2-local-1')"><a href="#bowtie2-local-1"></a></td>
+          <td id = "S3" class="value_col a" OnClick="link('#bwa-endtoend-1')"><a href="#bwa-endtoend-1"></a></td>
+          <td id = "S4" class="value_col a" OnClick="link('#bowtie2-endtoend-1')"><a href="#bowtie2-endtoend-1"></a></td>
         </tr>
         <tr>
           <td>C (Reads that contain clips)</td>
-          <td id = "C1" class = "value_col"></td>
-          <td id = "C2" class = "value_col"></td>
+          <td id="C1" class="value_col a" OnClick="link('#bwa-mem-2')"><a href="#bwa-mem-2"></a></td>
+          <td id = "C2" class = "value_col a" OnClick="link('#bowtie2-local-2')"><a href="#bowtie2-local-2"></a></td>
           <td id = "C3" class = "value_col"></td>
           <td id = "C4" class = "value_col"></td>
         </tr>
