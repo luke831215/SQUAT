@@ -184,37 +184,49 @@ def draw_bar(ax, label_array, read_size, idx, label=''):
 def do_label_dis_bar(ax, align_array, aln_tool, label_array, crt_label=''):
 	read_size = len(align_array)
 	patch_handles = {}
-	x_labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N', ]
-	below_cnt = np.sum(label_array == 'F')
+	x_labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N'] if 'endtoend' not in aln_tool else ['P', 'S', 'O', 'M', 'F', 'N']
+	idx = 0
+	below_cnt = 0
 
 	#P
-	draw_bar(ax, label_array, read_size, 0, label='P')
+	draw_bar(ax, label_array, read_size, idx, label='P')
+	idx += 1
 
 	#S
 	nm_list = do_nm(align_array, label_array)
-	lower_cnt = draw_bar_bi(ax, nm_list, read_size, 1, label='S')
+	lower_cnt = draw_bar_bi(ax, nm_list, read_size, idx, label='S')
 	below_cnt += lower_cnt
+	idx += 1
 	
 	#C
-	cr_list = do_cr(align_array, label_array)
-	lower_cnt = draw_bar_bi(ax, cr_list, read_size, 2, label='C')
-	below_cnt += lower_cnt
+	if 'endtoend' not in aln_tool:
+		cr_list = do_cr(align_array, label_array)
+		lower_cnt = draw_bar_bi(ax, cr_list, read_size, idx, label='C')
+		below_cnt += lower_cnt
+		idx += 1
+	else:
+		cr_list = None
 
 	#O
 	o_list = do_others(align_array, label_array)
-	lower_cnt = draw_bar_bi(ax, o_list, read_size, 3, label='O')
+	lower_cnt = draw_bar_bi(ax, o_list, read_size, idx, label='O')
 	below_cnt += lower_cnt
+	idx += 1
 
 	#M
-	draw_bar(ax, label_array, read_size, 4, label='M')
+	draw_bar(ax, label_array, read_size, idx, label='M')
+	idx += 1
 
 	#F
-	draw_bar(ax, label_array, read_size, 5, label='F')
+	draw_bar(ax, label_array, read_size, idx, label='F')
+	below_cnt += np.sum(label_array == 'F')
+	idx += 1
 
 	#N
 	n_list = do_N(align_array, label_array)
-	lower_cnt = draw_bar_bi(ax, n_list, read_size, 6, label='N', thre=N_thre)
+	lower_cnt = draw_bar_bi(ax, n_list, read_size, idx, label='N', thre=N_thre)
 	below_cnt += lower_cnt
+	idx += 1
 
 	below_pct = below_cnt / read_size
 	above_pct = 1 - below_pct
@@ -247,7 +259,10 @@ def flatten(label_distribution, aln_tool_list):
 
 	for label in labels:
 		for aln_tool in aln_tool_list:
-			stats[idx] = '{:.1%}'.format(label_distribution[aln_tool][label])
+			try:
+				stats[idx] = '{:.1%}'.format(label_distribution[aln_tool][label])
+			except ValueError:
+				stats[idx] = '{}'.format(label_distribution[aln_tool][label])
 			idx += 1
 
 	#7*4 array
@@ -285,10 +300,11 @@ def do_label_dis_table(label_dis, src_dir, aln_tool_list, table_figures):
 		aln_tool = aln_tool_list[j-3].replace('-', '\n')
 		add_text(plt.subplot(gs[0, j]), aln_tool, weight='bold')
 		for i in range(1, num_row):
-			add_text(plt.subplot(gs[i, j]), '{:.1%}'.format(label_dis[aln_tool_list[j-3]][labels[i-1]]))
-			
+			try:
+				add_text(plt.subplot(gs[i, j]), '{:.1%}'.format(label_dis[aln_tool_list[j-3]][labels[i-1]]))
+			except ValueError:
+				add_text(plt.subplot(gs[i, j]), '{}'.format(label_dis[aln_tool_list[j-3]][labels[i-1]]))
 
-	
 	#title = 'Label Distribution Table'
 	#plt.title(title, fontdict={'fontsize': 30})
 	table_figures.append(fig)

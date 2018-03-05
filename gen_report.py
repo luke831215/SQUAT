@@ -52,7 +52,10 @@ def get_label_distribution(labels, aln_tool_list, src_dir, data, read_size):
 		with open('{0}/{1}/Pauto/ids/{2}_ecv_0_reads.cnt'.format(src_dir, aln_tool, data), 'r') as infile:
 			for i in range(num_label):
 				[num_reads, name] = infile.readline().strip().split()
-				stats[aln_tool][labels[i]] = int(num_reads) / read_size
+				if 'endtoend' in aln_tool and labels[i] == 'C':
+					stats[aln_tool][labels[i]]	= 'N/A'
+				else:
+					stats[aln_tool][labels[i]] = int(num_reads) / read_size
 
 	return stats
 
@@ -63,7 +66,9 @@ def get_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_
 	for i in range(len(aln_tool_list)):
 		ax = fig.add_subplot(len(aln_tool_list) / 2, 2, i+1)
 		cigar_dict[aln_tool_list[i]] = plotter.do_label_dis_bar(ax, align_info_dict[aln_tool_list[i]], aln_tool_list[i], label_dict[aln_tool_list[i]])
+		#x-axis
 		ax.axhline(color='black')
+		
 	#add footnote under the barplot
 	footnote = ("1. Bar above the x-axis: portion of reads with good quality"
 				"\n"
