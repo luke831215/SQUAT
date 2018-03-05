@@ -10,7 +10,11 @@ from bs4 import BeautifulSoup
 import xlsxwriter
 import csv
 
+
 labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N']
+crt_thre = 0.3
+N_thre = 0.1
+
 
 def save_to_csv(stats, src_dir, aln_tool_list):
 	with open('{}/label_dis/label_dis.csv'.format(src_dir), 'w') as w:
@@ -22,15 +26,25 @@ def save_to_csv(stats, src_dir, aln_tool_list):
 			cnt += 1
 
 
-def fill_in_table(stats, main_div):
+def fill_in_table(stats, main_div, soup, template_fpath):
+	label_list = ['P', 'S', 'C', 'O', 'M', 'F', 'N']
+	icon_dirpath = "{}/icons".format(os.path.dirname(template_fpath))
+	label_div = main_div.findAll('div', {"class": 'label'})
+
+	for i in range(len(label_div)):
+		#remove original img tag
+		tmp = label_div[i].find('img')
+		tmp.replace_with('')
+
+		#generate new icon
+		data_uri = base64.b64encode(open("{0}/{1}.png".format(icon_dirpath, label_list[i]), 'rb').read()).decode('utf-8').replace('\n', '')
+		img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri), **{'class': 'icon'})
+		label_div[i].append(img_src)
+
 	for i in range(len(stats)):
 		for j in range(len(stats[0])):
 			cell = main_div.find('td', id='{0}{1}'.format(labels[i], j+1))
-			try:
-				cell.string = stats[i][j]
-			except:
-				print(i, j)
-				return
+			cell.string = stats[i][j]
 
 
 def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distribution):
@@ -39,17 +53,28 @@ def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distributi
 	src_dir = os.path.dirname(all_html_fpath)
 	with open(template_fpath) as file:
 		soup = BeautifulSoup(file, "lxml")
-		main_div = soup.find('div', class_='main')
+		main_div = soup.find('div', {"class": 'main'})
+		
 		#set up label dis. table
-		fill_in_table(flatten(label_distribution, aln_tool_list), main_div)
+		fill_in_table(flatten(label_distribution, aln_tool_list), main_div, soup, template_fpath)
 
-		cnt = 0
-		for aln_tool in ['label_dis'] + aln_tool_list:
+		#plot label dis bar first
+		img_fpath = '{}/label_dis/bar.png'.format(src_dir)
+		data_uri = base64.b64encode(open(img_fpath, 'rb').read()).decode('utf-8').replace('\n', '')
+		new_div = soup.new_tag("div", id="label_dis_bar", **{'class': 'inner'})
+		img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri))
+		new_div.append(img_src)
+		main_div.append(new_div)
+
+		#the rest of distribution graph for each aligner
+		
+		for aln_tool in aln_tool_list:
+			cnt = 1
 			files = glob.glob('{0}/{1}/imgs/*.png'.format(src_dir, aln_tool))
 			files.sort(key=os.path.getmtime)
-			for img_name in files:
-				data_uri = base64.b64encode(open(img_name, 'rb').read()).decode('utf-8').replace('\n', '')
-				new_div = soup.new_tag("div", id="inner", class_="{0}-{1}".format(aln_tool, cnt))
+			for img_fpath in files:
+				data_uri = base64.b64encode(open(img_fpath, 'rb').read()).decode('utf-8').replace('\n', '')
+				new_div = soup.new_tag("div", id="{0}-{1}".format(aln_tool, cnt), **{'class': 'inner'})
 				img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri))
 				new_div.append(img_src)
 				main_div.append(new_div)
@@ -84,86 +109,124 @@ def save_to_pdf(all_pdf_fpath, plot_figures, table_figures):
 	plt.close('all')  # closing all open figures
 
 
-def plot_sam_dis(src_dir, data, aln_tool, label_dis, plot_figures, xlabel='', label=''):
+def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, xlabel='', label='', cigar_list={}):
 	hist, bins = np.histogram(data, bins=20)
 	
 	fig = plt.figure(figsize=(15, 10))
-	gs = gridspec.GridSpec(1, 2, width_ratios=[3, 1]) 
+	#gs = gridspec.GridSpec(1, 2, width_ratios=[4, 1]) 
 
-	#first plot
-	ax = fig.add_subplot(gs[0])
-	#second plot: dis bar
-	ax2 = fig.add_subplot(gs[1])
-
+	ax = fig.add_subplot(111)
 	ax.bar(bins[:-1], hist.astype(np.float32) / hist.sum() * 100, width=(bins[1]-bins[0]), alpha=0.5, color='steelblue', linewidth=0, align='edge')
 	ax.set_xlabel(xlabel)
 	ax.set_ylabel('Percentile')
-	
-	if label:
-		title = '{0} distribution of {1} reads\n{2}'.format(xlabel, label, aln_tool)
-		ax.set_title(title)
-		do_label_dis_bar(ax2, aln_tool, label_dis, label)
 
-	#im = plt.imread(insert_fig)
-	#ax.imshow(im)
-	#newax.axis('off')
+	#add legend
+	num_read = np.sum(label_array == label)
+	if 'Alignment Score' not in xlabel:
+		ax.axvline(crt_thre, color='red', zorder=20)
+		ratio_good = np.sum(data < crt_thre)/num_read
+		ratio_bad = 1 - ratio_good
+		ax.plot(1, 1, label='Below threshold (eligible): {:.1%}'.format(ratio_good), marker='', ls='')
+		ax.plot(1, 1, label='Above threshold (flawed): {:.1%}'.format(ratio_bad), marker='', ls='')
+
+		#zoom in the graph if necessary
+		if np.max(data) < 0.5:		
+			ax.set_xlim(0, 0.5)
+			ax.text(crt_thre*2, 0.5, 'threshold', transform=ax.transAxes)
+		else:
+			ax.text(crt_thre, 0.5, 'threshold', transform=ax.transAxes)
+	
+	label_dis = num_read / read_size
+	ax.plot(1, 1, label='No. of {0} reads: {1} ({2:.1%})'.format(label, num_read, label_dis), marker='', ls='')
+	ax.legend(loc=1, prop={'size': 15})
+
+	title = '{0} distribution of {1} reads\n{2}'.format(xlabel, label, aln_tool)
+	ax.set_title(title)
 
 	plot_figures.append(fig)
 
-	title = '{0} distribution of {1} reads {2}'.format(xlabel, label, aln_tool)
-	plt.savefig('{0}/{1}/imgs/{2}.png'.format(src_dir, aln_tool, title.replace(" ", "_")))
+	#title = '{0} distribution of {1} reads {2}'.format(xlabel, label, aln_tool)
+	plt.savefig('{0}/{1}/imgs/{2}_dis_{3}.png'.format(src_dir, aln_tool, xlabel, label))
 	plt.close()
 
 
-def do_label_dis_bar(ax, aln_tool, label_dis, crt_label=''):
-	colors ='rgbymc'
-	patch_handles = {}
-	x_labels = ['Mappable', 'Repeat', 'Unmapped']
-	bottom = np.zeros(len(x_labels))
-	value_dict = {}
-	for key in label_dis:
-		value_dict[key] = label_dis[key]*100
+def draw_bar_bi(ax, field_list, read_size, idx, label='', thre=crt_thre):
+	#'rgbymck'
+	colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
 
-	#P, S
-	patch_handles['P'] = ax.bar(0, value_dict['P'], color=colors[0],
-	align='center', bottom=bottom[0], width = 0.5, label='P')
-	bottom[0] += value_dict['P']
-	patch_handles['S'] = ax.bar(0, value_dict['S'], color=colors[1],
-	align='center', bottom=bottom[0], width = 0.5, label='S')
-	bottom[0] += value_dict['S']
+	upper_cnt, lower_cnt = 0, 0
+	for field in field_list:
+		if field < thre:
+			upper_cnt += 1
+		else:
+			lower_cnt += 1
+	
+	print(label, upper_cnt, lower_cnt)
+	value = upper_cnt / read_size * 100	
+	ax.bar(idx, value, color=colors[idx], align='center', width=0.5)#, label=label)#label=r'${}_+$'.format(label))
+	value = -1 * lower_cnt / read_size * 100	
+	ax.bar(idx, value, color=colors[idx], align='center', width=0.5)#label=r'${}_-$'.format(label))
+
+	return lower_cnt
+
+
+def draw_bar(ax, label_array, read_size, idx, label=''):
+	colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
+	constant = -1 if label == 'F' else 1
+
+	value = constant * np.sum(label_array == label) / read_size * 100
+	ax.bar(idx, value, color=colors[idx], align='center', width=0.5)#, label=label)
+
+
+def do_label_dis_bar(ax, align_array, aln_tool, label_array, crt_label=''):
+	read_size = len(align_array)
+	patch_handles = {}
+	x_labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N', ]
+	below_cnt = np.sum(label_array == 'F')
+
+	#P
+	draw_bar(ax, label_array, read_size, 0, label='P')
+
+	#S
+	nm_list = do_nm(align_array, label_array)
+	lower_cnt = draw_bar_bi(ax, nm_list, read_size, 1, label='S')
+	below_cnt += lower_cnt
+	
+	#C
+	cr_list = do_cr(align_array, label_array)
+	lower_cnt = draw_bar_bi(ax, cr_list, read_size, 2, label='C')
+	below_cnt += lower_cnt
+
+	#O
+	o_list = do_others(align_array, label_array)
+	lower_cnt = draw_bar_bi(ax, o_list, read_size, 3, label='O')
+	below_cnt += lower_cnt
 
 	#M
-	patch_handles['M'] = ax.bar(1, value_dict['M'], color=colors[2],
-	align='center', bottom=bottom[1], width = 0.5, label='M')
-	bottom[1] += value_dict['M']
+	draw_bar(ax, label_array, read_size, 4, label='M')
 
-	#F, C, O
-	patch_handles['F'] = ax.bar(2, value_dict['F'], color=colors[3],
-	align='center', bottom=bottom[2], width = 0.5, label='F')
-	bottom[2] += value_dict['F']
+	#F
+	draw_bar(ax, label_array, read_size, 5, label='F')
 
-	patch_handles['C'] = ax.bar(2, value_dict['C'], color=colors[4],
-	align='center', bottom=bottom[2], width = 0.5, label='C')
-	bottom[2] += value_dict['C']
+	#N
+	n_list = do_N(align_array, label_array)
+	lower_cnt = draw_bar_bi(ax, n_list, read_size, 6, label='N', thre=N_thre)
+	below_cnt += lower_cnt
 
-	patch_handles['O'] = ax.bar(2, value_dict['O'], color=colors[5],
-	align='center', bottom=bottom[2], width = 0.5, label='O')
-	bottom[2] += value_dict['O']
+	below_pct = below_cnt / read_size
+	above_pct = 1 - below_pct
 
-	#Add label in the middle of bar
-	if crt_label:
-		patch = patch_handles[crt_label].get_children()[0]
-		coo_ax = patch.get_xy()
-		x = 0.5*patch.get_width() + coo_ax[0]
-		y = 0.5*patch.get_height() + coo_ax[1]
-		ax.text(x, y, '*', ha='center', fontsize=30)
-
-	ax.set_xticks(np.arange(3))
+	ax.plot(1, 1, label='Above: {:.1%}'.format(above_pct), marker='', ls='')
+	ax.plot(1, 1, label='Below: {:.1%}'.format(below_pct), marker='', ls='')
+	ax.set_ylim(-100, 100)
+	ax.set_xticks(np.arange(len(x_labels)))
 	ax.set_xticklabels(x_labels)
 	ax.set_ylabel('Percentage')
-	ax.legend(loc=1)
+	ax.legend(loc=1, prop={'size': 10}, frameon=False)
 	ax.set_title('{}'.format(aln_tool))
-	#return ax.get_figure()
+
+	#record barplot input for future use
+	return {'P': None, 'S': nm_list, 'C': cr_list, 'O': o_list, 'M': None, 'F': None, 'N': n_list}
 
 
 def add_text(ax, text, fontsize='x-large', weight='medium'):
@@ -226,7 +289,7 @@ def do_label_dis_table(label_dis, src_dir, aln_tool_list, table_figures):
 	#title = 'Label Distribution Table'
 	#plt.title(title, fontdict={'fontsize': 30})
 	table_figures.append(fig)
-	plt.savefig('{0}/label_dis/imgs/table.png'.format(src_dir))
+	#plt.savefig('{0}/label_dis/imgs/table.png'.format(src_dir))
 	plt.close()
 
 	save_to_csv(flatten(label_dis, aln_tool_list), src_dir, aln_tool_list)
@@ -236,27 +299,28 @@ def do_basic_stats(table_figures, ecv_fpath):
 	pass
 
 
-def do_nm(aln_tool, align_array, label_array, read_size):
+def do_nm(align_array, label_array):
 	"""plot mismatch in unique reads with sub. error"""
 
-	cnt = 0	
-	nm_list = np.zeros(read_size)
+	cnt = 0
+	label_id_list = np.where(label_array == 'S')[0]
+	nm_list = np.zeros(len(label_id_list))
 
-	for _id in np.where(label_array == 'S')[0]:
-		nm_list[cnt] = align_array[_id]['num_mismatch'][0]
+	for _id in label_id_list:
+		nm_list[cnt] = align_array[_id]['num_mismatch'][0]/len(align_array[_id]['seq'][0])
 		cnt += 1
 
-	#plot_sam_dis(nm_list[:cnt], '#Mismatch', '#Mismatch Distribution in S - {}'.format(aln_tool), insert_fig)
-	return nm_list[:cnt]
+	return nm_list
 
 
-def do_cr(aln_tool, align_array, label_array, read_size):
+def do_cr(align_array, label_array):
 	"""clip rate, excluding bowtie2-endtoend (no clip labels)"""
 
 	cnt = 0
-	cr_list = np.zeros(read_size)
+	label_id_list = np.where(label_array == 'C')[0]
+	cr_list = np.zeros(len(label_id_list))
 
-	for _id in np.where(label_array == 'C')[0]:
+	for _id in label_id_list:
 		length, clip_size = 0, 0
 		cigar = align_array[_id]['cigar'][0]
 		m = re.findall('\d+[MIDNSHP=X]', cigar)
@@ -268,23 +332,57 @@ def do_cr(aln_tool, align_array, label_array, read_size):
 		cr_list[cnt] = clip_size / length
 		cnt += 1
 	
-	#plot_sam_dis(cr_list[:cnt], 'Clip Rate', 'Clip Rate Distribution in C - {}'.format(aln_tool), insert_fig)
-	return cr_list[:cnt]
+	return cr_list
 
 
-def do_as(aln_tool, align_array, label_array, read_size, label):
+def do_as(align_array, label_array, label):
 	""""alignment score, excluding bwa-endtoend (no AS field) and bowtie2-endtoend for clipped reads"""
 
-	as_list = np.zeros(read_size)
-	align_subset = align_array[np.where(label_array == label)]
+	label_id_list = np.where(label_array == label)
+	as_list = np.zeros(len(label_id_list[0]))
+	align_subset = align_array[label_id_list]
 	cnt = 0
 
 	for alignment in align_subset:
 		as_list[cnt] = alignment['AS'][0]
 		cnt += 1
 
-	#plot_sam_dis(as_list[:cnt], '#Alignment Score - {}'.format(label), 'Alignment Score Distribution in {0} - {1}'.format(label, aln_tool), insert_fig)
-	return as_list[:cnt]
+	return as_list
+
+
+def do_others(align_array, label_array):
+	cnt = 0
+	label_id_list = np.where(label_array == 'O')[0]
+	o_list = np.zeros(len(label_id_list))
+
+	for _id in label_id_list:
+		length, o_size = 0, 0
+		cigar = align_array[_id]['cigar'][0]
+		m = re.findall('\d+[MIDNSHP=X]', cigar)
+		for value in m:
+			length += int(value[:-1])
+			if value[-1] in ['I', 'D', 'P', '=', 'X']:
+				o_size += int(value[:-1])
+
+		o_list[cnt] = o_size / length
+		cnt += 1
+	
+	return o_list
+
+
+def do_N(align_array, label_array):
+	cnt = 0
+	label_id_list = np.where(label_array == 'N')[0]
+	n_list = np.zeros(len(label_id_list))
+	
+	for _id in label_id_list:
+		seq = align_array[_id]['seq'][0]
+		if 'N' in seq:
+			n_size = seq.count('N')
+			n_list[cnt] = n_size / len(seq)
+			cnt += 1
+
+	return n_list
 
 
 def regression_plot():

@@ -69,7 +69,8 @@
   }
 
   img {
-    width: 90%;
+    width: 100%;
+    margin: 0 auto;
   }
 
   ul {
@@ -139,7 +140,8 @@
 
   .inner {
     /*width: 80%;*/
-    margin: 0 auto;
+    text-align: center;
+
   }
   
 
@@ -293,9 +295,6 @@
 </style>
 
 </head>
-
-<script>
-</script>
 
 <body>
   <div class="header">
@@ -469,49 +468,49 @@
         </tr>
         <tr>
           <td rowspan="4" width=15%>Uniquely-mapped Reads</td>
-          <td><div><span class="label-icon">P</span><img src="icons/P.png" class="icon" /></div></td>
-          <td id = "P1" class="value_col a" OnClick="link('#bwa-mem-3')"><a href="#bwa-mem-3"></a></td>
-          <td id = "P2" class="value_col a" OnClick="link('#bowtie2-local-3')"><a href="#bowtie2-local-3"></a></td>
+          <td><div class="label"><span class="label-icon">P</span><img src="icons/P.png" class="icon" /></div></td>
+          <td id = "P1" class="value_col a" onclick="link('#bwa-mem-3')"></td>
+          <td id = "P2" class="value_col a" onclick="link('#bowtie2-local-3')"></td>
           <td id = "P3" class = "value_col" ></td>
-          <td id = "P4" class="value_col a" OnClick="link('#bowtie2-endtoend-2')"><a href="#bowtie2-endtoend-2"></a></td>
+          <td id = "P4" class="value_col a" onclick="link('#bowtie2-endtoend-2')"></td>
         </tr>
         <tr>
-          <td><div><span class="label-icon">S</span><img src="icons/S.png" class="icon" /></div></td>
-          <td id = "S1" class="value_col a" OnClick="link('#bwa-mem-1')"><a href="#bwa-mem-1"></a></td>
-          <td id = "S2" class="value_col a" OnClick="link('#bowtie2-local-1')"><a href="#bowtie2-local-1"></a></td>
-          <td id = "S3" class="value_col a" OnClick="link('#bwa-endtoend-1')"><a href="#bwa-endtoend-1"></a></td>
-          <td id = "S4" class="value_col a" OnClick="link('#bowtie2-endtoend-1')"><a href="#bowtie2-endtoend-1"></a></td>
+          <td><div class="label"><span class="label-icon">S</span><img src="icons/S.png" class="icon" /></div></td>
+          <td id = "S1" class="value_col a" onclick="link('#bwa-mem-1')"></td>
+          <td id = "S2" class="value_col a" onclick="link('#bowtie2-local-1')"></td>
+          <td id = "S3" class="value_col a" onclick="link('#bwa-endtoend-1')"></td>
+          <td id = "S4" class="value_col a" onclick="link('#bowtie2-endtoend-1')"></td>
         </tr>
         <tr>
-          <td><div><span class="label-icon">C</span><img src="icons/C.png" class="icon" /></div></td>
-          <td id="C1" class="value_col a" OnClick="link('#bwa-mem-2')"><a href="#bwa-mem-2"></a></td>
-          <td id = "C2" class = "value_col a" OnClick="link('#bowtie2-local-2')"><a href="#bowtie2-local-2"></a></td>
+          <td><div class="label"><span class="label-icon">C</span><img src="icons/C.png" class="icon" /></div></td>
+          <td id="C1" class="value_col a" onclick="link('#bwa-mem-2')"></td>
+          <td id = "C2" class = "value_col a" onclick="link('#bowtie2-local-2')"></td>
           <td id = "C3" class = "value_col"></td>
           <td id = "C4" class = "value_col"></td>
         </tr>
         <tr>
-          <td><div><span class="label-icon">O</span><img src="icons/O.png" class="icon" /></div></td>
+          <td><div class="label"><span class="label-icon">O</span><img src="icons/O.png" class="icon" /></div></td>
           <td id = "O1" class = "value_col"></td>
           <td id = "O2" class = "value_col"></td>
           <td id = "O3" class = "value_col"></td>
           <td id = "O4" class = "value_col"></td>
         </tr>
         <tr>
-          <td colspan="2"><div><span class="label-icon">M</span><img src="icons/M.png" class="icon" /></div></td>
+          <td colspan="2"><div class="label"><span class="label-icon">M</span><img src="icons/M.png" class="icon" /></div></td>
           <td id = "M1" class = "value_col"></td>
           <td id = "M2" class = "value_col"></td>
           <td id = "M3" class = "value_col"></td>
           <td id = "M4" class = "value_col"></td>
         </tr>
         <tr>
-          <td colspan="2"><div><span class="label-icon">F</span><img src="icons/F.png" class="icon" /></div></td>
+          <td colspan="2"><div class="label"><span class="label-icon">F</span><img src="icons/F.png" class="icon" /></div></td>
           <td id = "F1" class = "value_col"></td>
           <td id = "F2" class = "value_col"></td>
           <td id = "F3" class = "value_col"></td>
           <td id = "F4" class = "value_col"></td>
         </tr>
         <tr>
-          <td colspan="2"><div><span class="label-icon">N</span><img src="icons/N.png" class="icon" /></div></td>
+          <td colspan="2"><div class="label"><span class="label-icon">N</span><img src="icons/N.png" class="icon" /></div></td>
           <td id = "N1" class = "value_col"></td>
           <td id = "N2" class = "value_col"></td>
           <td id = "N3" class = "value_col"></td>
@@ -522,3 +521,10 @@
   </div>
 
 </body>
+
+
+<script>
+  function link(href){
+    window.location.href = href;
+  }
+</script>

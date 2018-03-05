@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib; matplotlib.use('pdf')
 import matplotlib.pyplot as plt
 import pickle
+import shutil
 
 from libs import plotter
 from importlib import reload
@@ -56,14 +57,23 @@ def get_label_distribution(labels, aln_tool_list, src_dir, data, read_size):
 	return stats
 
 
-def get_label_dis_bar(label_distribution, src_dir, labels, aln_tool_list, plot_figures):
+def get_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_figures):
+	cigar_dict = {}
 	fig = plt.figure(figsize=(15, 10))
 	for i in range(len(aln_tool_list)):
-		ax = fig.add_subplot(2, 2, i+1)
-		plotter.do_label_dis_bar(ax, aln_tool_list[i], label_distribution[aln_tool_list[i]])
-
+		ax = fig.add_subplot(len(aln_tool_list) / 2, 2, i+1)
+		cigar_dict[aln_tool_list[i]] = plotter.do_label_dis_bar(ax, align_info_dict[aln_tool_list[i]], aln_tool_list[i], label_dict[aln_tool_list[i]])
+		ax.axhline(color='black')
+	#add footnote under the barplot
+	footnote = ("1. Bar above the x-axis: portion of reads with good quality"
+				"\n"
+				"2. Bar below the x-axis: portion of reads with bad quality"
+				)
+	plt.figtext(0.1, 0.05, footnote, va="bottom", ha="left")
 	fig.savefig('{}/label_dis/bar.png'.format(src_dir))
 	plot_figures.append(fig)
+	plt.close()
+	return cigar_dict
 
 
 def draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath):
@@ -71,49 +81,45 @@ def draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_si
 	plotter.do_label_dis_table(label_distribution, src_dir, aln_tool_list, table_figures)
 
 
-def draw_report_imgs(aln_tool, label_array, src_dir, data, read_size, plot_figures):
-
-	#draw the rest, extract info from sam file first
-	sam_file = '{0}/{1}/Pauto/{2}_ecv_all.sam'.format(src_dir, aln_tool, data)
-	path = '/'.join(sam_file.split('/')[:-2])+'/align_info'
-
-	align_array = extract_sam_info(data, read_size, sam_file)
-	pickle.dump(align_array, open(path, 'wb'))
-	#align_array = pickle.load(open(path, 'rb'))
+def draw_report_imgs(aln_tool, label_array, align_array, src_dir, data, read_size, cigar_dict, plot_figures):
 
 	#no clips
 	if aln_tool == 'bowtie2-endtoend':
-		nm_list = plotter.do_nm(aln_tool, align_array, label_array, read_size)
-		plotter.plot_sam_dis(src_dir, nm_list, aln_tool, label_distribution[aln_tool], plot_figures, xlabel='#Mismatch', label='S')
+		nm_list = plotter.do_nm(align_array, label_array)
+		plotter.plot_sam_dis(src_dir, nm_list, aln_tool, label_array, read_size, plot_figures, xlabel='Mismatch%', label='S', cigar_list=cigar_dict['S'])
 
 		for label in (['P', 'S']):
-			as_list = plotter.do_as(aln_tool, align_array, label_array, read_size, label)
-			plotter.plot_sam_dis(src_dir, as_list, aln_tool, label_distribution[aln_tool], plot_figures, xlabel='Alignment Score', label=label)
+			as_list = plotter.do_as(align_array, label_array, label)
+			plotter.plot_sam_dis(src_dir, as_list, aln_tool, label_array, read_size, plot_figures, xlabel='Alignment Score', label=label, cigar_list=cigar_dict[label])
 
 	#no AS field, no clips
 	elif aln_tool == 'bwa-endtoend':
-		nm_list = plotter.do_nm(aln_tool, align_array, label_array, read_size)
-		plotter.plot_sam_dis(src_dir, nm_list, aln_tool, label_distribution[aln_tool], plot_figures, xlabel='#Mismatch', label='S')
+		nm_list = plotter.do_nm(align_array, label_array)
+		plotter.plot_sam_dis(src_dir, nm_list, aln_tool, label_array, read_size, plot_figures, xlabel='Mismatch%', label='S', cigar_list=cigar_dict['S'])
 
 	else:
-		nm_list = plotter.do_nm(aln_tool, align_array, label_array, read_size)
-		plotter.plot_sam_dis(src_dir, nm_list, aln_tool, label_distribution[aln_tool], plot_figures, xlabel='#Mismatch', label='S')
+		nm_list = plotter.do_nm(align_array, label_array)
+		plotter.plot_sam_dis(src_dir, nm_list, aln_tool, label_array, read_size, plot_figures, xlabel='Mismatch%', label='S', cigar_list=cigar_dict['S'])
 
-		cr_list = plotter.do_cr(aln_tool, align_array, label_array, read_size)
-		plotter.plot_sam_dis(src_dir, cr_list, aln_tool, label_distribution[aln_tool], plot_figures, xlabel='Clip%', label='C')
+		cr_list = plotter.do_cr(align_array, label_array)
+		plotter.plot_sam_dis(src_dir, cr_list, aln_tool, label_array, read_size, plot_figures, xlabel='Clip%', label='C', cigar_list=cigar_dict['C'])
 		for label in (['P', 'S', 'C']):
-			as_list = plotter.do_as(aln_tool, align_array, label_array, read_size, label)
-			plotter.plot_sam_dis(src_dir, as_list, aln_tool, label_distribution[aln_tool], plot_figures, xlabel='Alignment Score', label=label)
+			as_list = plotter.do_as(align_array, label_array, label)
+			plotter.plot_sam_dis(src_dir, as_list, aln_tool, label_array, read_size, plot_figures, xlabel='Alignment Score', label=label, cigar_list=cigar_dict[label])
 
 
-def get_label_array(info_file, read_size):
-	label_array = np.array([None for i in range(read_size)])
-	with open(info_file, 'r') as infile:
-		idx = 0
-		for line in infile:
-			label_array[idx] = line.split('\t')[1]
-			idx += 1
-	return label_array
+def get_label_dict(data, aln_tool_list, read_size):
+	label_dict = {}
+	for aln_tool in aln_tool_list:
+		label_dict[aln_tool] = np.array([None for i in range(read_size)])
+		info_file = src_dir+'/{0}/Pauto/ids/{1}_ecv_0_reads.info'.format(aln_tool, data)
+		with open(info_file, 'r') as infile:
+			idx = 0
+			for line in infile:
+				label_dict[aln_tool][idx] = line.split('\t')[1]
+				idx += 1
+	
+	return label_dict
 
 		
 if __name__ == '__main__':
@@ -121,25 +127,42 @@ if __name__ == '__main__':
 	all_pdf_fpath = src_dir+'/report.pdf'
 	all_html_fpath = src_dir+'/report.html'
 	aln_tool_list = ['bwa-mem', 'bowtie2-local', 'bwa-endtoend', 'bowtie2-endtoend'] #kart
-	labels = ['N', 'F', 'M', 'P', 'S', 'C', 'O']
+	labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N']
 	read_size = int(read_size)
+	align_info_dict = {}
 	plot_figures = []
 	table_figures = []
 
+	label_dict = get_label_dict(data, aln_tool_list, read_size)
 	#label distribution table
 	print("Generate label distribution graph")
 	label_distribution = get_label_distribution(labels, aln_tool_list, src_dir, data, read_size)
-	label_dis_stats = draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath)
+	draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath)
+
+	print('Extract alignment information from sam files')
+	#save alignment info for each aligner tool to align_info_dict
+	for aln_tool in aln_tool_list:
+		sam_file = '{0}/{1}/Pauto/{2}_ecv_all.sam'.format(src_dir, aln_tool, data)
+		path = '/'.join(sam_file.split('/')[:-2])+'/align_info'
+		try:
+			align_info_dict[aln_tool] = pickle.load(open(path, 'rb'))
+		except:
+			align_info_dict[aln_tool] = extract_sam_info(data, read_size, sam_file)
+			pickle.dump(align_info_dict[aln_tool], open(path, 'wb'))
 
 	#save label distribution bar, one img for each aligner
-	get_label_dis_bar(label_distribution, src_dir, labels, aln_tool_list, plot_figures)
+	cigar_dict = get_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_figures)
 
 	#Draw distribution graph in terms of NM, CR, AS
 	for aln_tool in aln_tool_list:
+		dirname = "{0}/{1}/imgs".format(src_dir, aln_tool)
+		if os.path.isdir(dirname):
+			shutil.rmtree(dirname)
+			os.makedirs(dirname)
+
 		print("Plot distribution graph from {}".format(aln_tool))
-		info_file = src_dir+'/{0}/Pauto/ids/{1}_ecv_0_reads.info'.format(aln_tool, data)
-		label_array = get_label_array(info_file, read_size)
-		draw_report_imgs(aln_tool, label_array, src_dir, data, read_size, plot_figures)
+		align_array = align_info_dict[aln_tool]
+		draw_report_imgs(aln_tool, label_dict[aln_tool], align_array, src_dir, data, read_size, cigar_dict[aln_tool], plot_figures)
 	
 	#regression_plot()
 	template_fpath = os.path.dirname(sys.argv[0])+'/template/template.html'
