@@ -3,14 +3,60 @@
   <title>Report</title>
   <script type="text/javascript"> </script>
   <style>  
-    div.summary {
-    width: 18em;
-    position:fixed;
-    top: 3em;
-    margin:1em 0 0 0;
-    font-family: sans-serif;   
-    left: 0;
+
+    #btpBtn {
+      background-color: #50A1CB; /* button color */
+      color: white; /* text/arrow color */ 
+      z-index: 999;
+      display: none;
+    
+      /* float in bottom right corner */
+      /* 20 pixels from edge */
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      /* size of button is 50 pixels*/
+      width: 100px;
+      height: 100px;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box; 
+      /* round button */
+      -webkit-border-radius: 50%;
+      border-radius: 50%;
+      border-width: 0;
+      font-size: 1.5em;
+    }
+
+  #btpBtn:hover {
+     background-color: #50cbad;
   }
+
+  i {
+    border-width: 0 3px 3px 0;
+    display: block;
+    padding: 3px;
+  }
+
+  .up {
+    transform: rotate(-135deg);
+    -webkit-transform: rotate(-135deg);
+    width: 0.8em;
+    height: 0.8em;
+    border-right: 0.3em ridge black;
+    border-top: 0.3em ridge black;
+    transform: rotate(-45deg);
+    margin: 0 auto;
+  }
+
+  div.summary {
+  width: 18em;
+  position:fixed;
+  top: 3em;
+  margin:1em 0 0 0;
+  font-family: sans-serif;   
+  left: 0;
+}
 
 
   div.main {
@@ -95,7 +141,7 @@
   }
 
   .plot-sec {
-    height: 600px;
+    height: 80%;
     padding: 100px;
   }
 
@@ -292,11 +338,31 @@
   border-right: none;
 }
 
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  font-size: 18px;
+  border: none;
+  outline: none;
+  background-color: red;
+  color: white;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 4px;
+}
+
+#myBtn:hover {
+  background-color: #555;
+
 </style>
 
 </head>
 
 <body>
+
   <div class="header">
     <div id="header_title">
       SQUAT Report
@@ -315,7 +381,7 @@
       <label class="ac-label" for="ac-1">I. Data Quality Assessment</label>
       <article class="ac-text">
         <div class="ac-sub">
-          <span class="ac-row">
+          <span class="ac-row" onclick="link('#label-dis-table')">
             Label Distrbution Table
           </span>
         </div>
@@ -323,7 +389,7 @@
 
       <article class="ac-text">
         <div class="ac-sub">
-          <span class="ac-row">
+          <span class="ac-row" onclick="link('#label-dis-barchart')">
             Label Distribution Barchart
           </span>
         </div>
@@ -456,9 +522,10 @@
     </div>
   </div>
   
-  <div class="main">
+  <div class="main" id="main" onscroll=scrollFunction()>
+    <button onclick="topFunction()" id="btpBtn" title="Go to top"><i class="up"></i>Top</button>
     <div class="plot-sec">
-      <table class="label_dis_table">
+      <table class="label-dis-table" id="label-dis-table">
         <tr>
           <th colspan="2"><bold>Label Distribution Table</bold></th>
           <th>BWA<br>MEM</th>
@@ -520,11 +587,32 @@
     </div>
   </div>
 
+
 </body>
 
-
 <script>
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = function() {scrollFunction()};
+
+function scrollFunction() {
+    if (document.getElementById("main").scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("btpBtn").style.display = "block";
+    } else {
+        document.getElementById("btpBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.getElementById("main").scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+
+  //href function
   function link(href){
     window.location.href = href;
   }
+
+
 </script>
