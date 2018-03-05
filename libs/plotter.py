@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 import xlsxwriter
 import csv
 
-
+colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
 labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N']
 crt_thre = 0.3
 N_thre = 0.1
@@ -61,7 +61,7 @@ def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distributi
 		#plot label dis bar first
 		img_fpath = '{}/label_dis/bar.png'.format(src_dir)
 		data_uri = base64.b64encode(open(img_fpath, 'rb').read()).decode('utf-8').replace('\n', '')
-		new_div = soup.new_tag("div", id="label_dis_bar", **{'class': 'inner'})
+		new_div = soup.new_tag("div", id="label-dis-barchart", **{'class': 'inner'})
 		img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri))
 		new_div.append(img_src)
 		main_div.append(new_div)
@@ -127,10 +127,10 @@ def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, 
 		ratio_good = np.sum(data < crt_thre)/num_read
 		ratio_bad = 1 - ratio_good
 		ax.plot(1, 1, label='Below threshold (eligible): {:.1%}'.format(ratio_good), marker='', ls='')
-		ax.plot(1, 1, label='Above threshold (flawed): {:.1%}'.format(ratio_bad), marker='', ls='')
+		ax.plot(1, 1, label='Above threshold (poor): {:.1%}'.format(ratio_bad), marker='', ls='')
 
 		#zoom in the graph if necessary
-		if np.max(data) < 0.5:		
+		if np.max(data) < 0.5:
 			ax.set_xlim(0, 0.5)
 			ax.text(crt_thre*2, 0.5, 'threshold', transform=ax.transAxes)
 		else:
@@ -151,9 +151,6 @@ def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, 
 
 
 def draw_bar_bi(ax, field_list, read_size, idx, label='', thre=crt_thre):
-	#'rgbymck'
-	colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
-
 	upper_cnt, lower_cnt = 0, 0
 	for field in field_list:
 		if field < thre:
@@ -161,21 +158,27 @@ def draw_bar_bi(ax, field_list, read_size, idx, label='', thre=crt_thre):
 		else:
 			lower_cnt += 1
 	
-	print(label, upper_cnt, lower_cnt)
-	value = upper_cnt / read_size * 100	
+	#print(label, upper_cnt, lower_cnt)
+	value = round(upper_cnt / read_size * 100)
 	ax.bar(idx, value, color=colors[idx], align='center', width=0.5)#, label=label)#label=r'${}_+$'.format(label))
-	value = -1 * lower_cnt / read_size * 100	
+	if value:
+		ax.text(idx, value+10, '{}'.format(value), ha='center')
+	
+	value = round(-1 * lower_cnt / read_size * 100)	
 	ax.bar(idx, value, color=colors[idx], align='center', width=0.5)#label=r'${}_-$'.format(label))
+	if value:
+		ax.text(idx, value-10, '{}'.format(value), ha='center')
 
 	return lower_cnt
 
 
 def draw_bar(ax, label_array, read_size, idx, label=''):
-	colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
 	constant = -1 if label == 'F' else 1
 
-	value = constant * np.sum(label_array == label) / read_size * 100
+	value = round(int(constant * np.sum(label_array == label) / read_size * 100))
 	ax.bar(idx, value, color=colors[idx], align='center', width=0.5)#, label=label)
+	if value:
+		ax.text(idx, value+10*constant, '{}'.format(value), ha='center')
 
 
 def do_label_dis_bar(ax, align_array, aln_tool, label_array, crt_label=''):
