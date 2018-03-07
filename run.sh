@@ -7,6 +7,9 @@ usage()
 	echo -e "Usage: $0 [-o <output_dir>] [-r <read_name>] [-i fastq_path] [-g <genome_path>]\n"
 	echo "Optional args:"
 	echo "-t	--thread	<int>	Number of thread to use" 
+	echo "-k	--keep	Don't flush the sam file after alignment" 
+	echo "-s 	<str>	return the subset of sequencing reads according to the labels (in capitals, e.g. PSCO)" 
+
 }
 
 function to_abs	{
@@ -23,11 +26,14 @@ if [[ $# -eq 0 || $(echo $1 | cut -c1) != "-" ]];then
     exit 1
 fi
 
-while getopts ":o:r:g:i:t:h" opt; do
+while getopts ":o:r:g:i:t:s:hk" opt; do
   case $opt in
     h)
 	  usage
 	  exit 0
+      ;;
+    k)
+	  KEEP_SAM=true
       ;;
     o)
 	  OUTDIR=$( to_abs ${OPTARG} )
@@ -43,6 +49,9 @@ while getopts ":o:r:g:i:t:h" opt; do
 	  ;;
 	t)
 	  MAXPROC=$OPTARG
+	  ;;
+	s)
+	  SUBSET=$OPTARG
 	  ;;
 	:)
 	  echo "Missing option argument for -$OPTARG" >&2; exit 1
@@ -65,7 +74,13 @@ if [[ -z "$MAXPROC" ]]; then
 	MAXPROC=$(($(grep -c ^processor /proc/cpuinfo)/3))
 fi
 
+if [[ -z "$KEEP_SAM" ]]; then
+	KEEP_SAM=false
+fi
+
+echo "Calculate number of reads"
 READSIZE=$(($(wc -l $ECVLOC | cut -d ' ' -f 1) /4))
+
 EXECDIR="$( cd "$(dirname "$0")" ; pwd)"
 #shift $((OPTIND-1))
 #echo "$@"
@@ -83,8 +98,15 @@ bash ${EXECDIR}/libs/run_mapping.sh $EXECDIR $OUTDIR $DATA $READSIZE $REFLOC $EC
 echo "generate kmer stats"
 bash ${EXECDIR}/libs/run_kcn.sh $OUTDIR/kcn_histo $DATA $ECVLOC
 
-#concatenate tables and imgs to report.pdf
+#analysis modules
 echo "Generate reports"
-cp -r ${EXECDIR}/template/link ${OUTDIR}/
-mkdir -p ${OUTDIR}/label_dis/imgs
-python -i ${EXECDIR}/gen_report.py ${OUTDIR} ${ECVLOC} ${DATA} ${READSIZE}
+#mkdir -p ${OUTDIR}/label_dis
+#mkdir -p ${OUTDIR}/subset
+python ${EXECDIR}/analysis.py ${OUTDIR} ${ECVLOC} ${DATA} ${READSIZE} ${SUBSET}
+
+#flush sam files
+if [ "$KEEP_SAM" = false ]; then
+	for tool in bowtie2-local bowtie2-endtoend bwa-mem bwa-endtoend; do
+		rm ${OUTDIR}/${tool}/Pauto/${DATA}_ecv_all.sam
+	done
+fi
