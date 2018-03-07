@@ -8,7 +8,7 @@ usage()
 	echo "Optional args:"
 	echo "-t	--thread	<int>	Number of thread to use" 
 	echo "-k	--keep	Don't flush the sam file after alignment" 
-	echo "-s 	<str>	return the subset of sequencing reads according to the labels (in capitals, e.g. PSCO)" 
+	echo "-s 	--subset 	<str>	return the subset of sequencing reads according to the labels (in capitals, e.g. PSCO)" 
 
 }
 
@@ -21,48 +21,61 @@ function to_abs	{
 	echo $absolute
 }
 
+
 if [[ $# -eq 0 || $(echo $1 | cut -c1) != "-" ]];then
     usage
     exit 1
 fi
 
-while getopts ":o:r:g:i:t:s:hk" opt; do
-  case $opt in
-    h)
-	  usage
-	  exit 0
-      ;;
-    k)
-	  KEEP_SAM=true
-      ;;
-    o)
-	  OUTDIR=$( to_abs ${OPTARG} )
-	  ;;
-	r)
-	  DATA=$OPTARG
-	  ;;
-	g)
-	  REFLOC=$( to_abs ${OPTARG} )
-	  ;;
-	i)
-	  ECVLOC=$( to_abs ${OPTARG} )	
-	  ;;
-	t)
-	  MAXPROC=$OPTARG
-	  ;;
-	s)
-	  SUBSET=$OPTARG
-	  ;;
-	:)
-	  echo "Missing option argument for -$OPTARG" >&2; exit 1
-      ;;
-    ?)
-      echo "Unknown option: -"${OPTARG} >&2; exit 1
-      ;;
-    *)
-	  echo "Unimplemented option: -$OPTARG" >&2; exit 1
-	  ;;
-  esac
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -h|--help)
+	usage
+	exit 0
+	;;
+    -k|--keep)
+	KEEP_SAM=YES
+    shift
+    ;;
+    -o)
+    OUTDIR="$( to_abs $2 )"
+    shift # past argument
+    shift # past value
+    ;;
+    -r)
+    DATA="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -g)
+    REFLOC="$( to_abs $2 )"
+    shift # past argument
+    shift # past value
+    ;;
+    -i)
+    ECVLOC="$( to_abs $2 )"
+    shift # past argument
+    shift # past value
+    ;;
+    -t|--thread)
+    MAXPROC="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -s|--subset)
+    SUBSET="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    *)    # unknown option
+	echo "Unknown option: "$1 >&2
+	exit 1
+    ;;
+esac
 done
 
 if [[ -z "$OUTDIR" || -z "$DATA" || -z "$REFLOC" || -z "$ECVLOC" ]]; then
@@ -105,7 +118,7 @@ echo "Generate reports"
 python ${EXECDIR}/analysis.py ${OUTDIR} ${ECVLOC} ${DATA} ${READSIZE} ${SUBSET}
 
 #flush sam files
-if [ "$KEEP_SAM" = false ]; then
+if [ "$KEEP_SAM" = "YES" ]; then
 	for tool in bowtie2-local bowtie2-endtoend bwa-mem bwa-endtoend; do
 		rm ${OUTDIR}/${tool}/Pauto/${DATA}_ecv_all.sam
 	done
