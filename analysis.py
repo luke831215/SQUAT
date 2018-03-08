@@ -71,7 +71,7 @@ def get_label_distribution(labels, aln_tool_list, src_dir, data, read_size):
 
 	#stats[aln_tool][label] = #reads / #total: 4*8
 	for aln_tool in aln_tool_list:
-		with open('{0}/{1}/Pauto/ids/{2}_ecv_0_reads.cnt'.format(src_dir, aln_tool, data), 'r') as infile:
+		with open('{0}/{1}/ids/{2}_ecv_0_reads.cnt'.format(src_dir, aln_tool, data), 'r') as infile:
 			for i in range(num_label):
 				[num_reads, name] = infile.readline().strip().split()
 				if 'endtoend' in aln_tool and labels[i] == 'C':
@@ -83,10 +83,6 @@ def get_label_distribution(labels, aln_tool_list, src_dir, data, read_size):
 
 
 def get_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_figures):
-	dirname='{}/label_dis'.format(src_dir)
-	if not os.path.isdir(dirname):
-		os.makedirs(dirname)
-
 	cigar_dict = {}
 	fig = plt.figure(figsize=(15, 10))
 	for i in range(len(aln_tool_list)):
@@ -143,7 +139,7 @@ def get_label_dict(data, aln_tool_list, read_size):
 	label_dict = {}
 	for aln_tool in aln_tool_list:
 		label_dict[aln_tool] = np.array([None for i in range(read_size)])
-		info_file = src_dir + '/{0}/Pauto/ids/{1}_ecv_0_reads.info'.format(aln_tool, data)
+		info_file = src_dir + '/{0}/ids/{1}_ecv_0_reads.info'.format(aln_tool, data)
 		with open(info_file, 'r') as infile:
 			idx = 0
 			for line in infile:
@@ -174,8 +170,8 @@ if __name__ == '__main__':
 	print('Extract alignment information from sam files')
 	#save alignment info for each aligner tool to align_info_dict
 	for aln_tool in aln_tool_list:
-		sam_file = '{0}/{1}/Pauto/{2}_ecv_all.sam'.format(src_dir, aln_tool, data)
-		path = '/'.join(sam_file.split('/')[:-2])+'/align_info'
+		sam_file = '{0}/{1}/{2}_ecv_all.sam'.format(src_dir, aln_tool, data)
+		path = '/'.join(sam_file.split('/')[:-1])+'/align_info'
 		try:
 			align_info_dict[aln_tool] = pickle.load(open(path, 'rb'))
 		except:
@@ -188,8 +184,8 @@ if __name__ == '__main__':
 	#Draw distribution graph in terms of NM, CR, AS
 	for aln_tool in aln_tool_list:
 		dirname = "{0}/{1}/imgs".format(src_dir, aln_tool)
-		if os.path.isdir(dirname):
-			shutil.rmtree(dirname)
+		if not os.path.isdir(dirname):
+			#shutil.rmtree(dirname)
 			os.makedirs(dirname)
 
 		print("Plot distribution graph from {}".format(aln_tool))
@@ -207,6 +203,7 @@ if __name__ == '__main__':
 		dirname='{}/subset'.format(src_dir)
 		if not os.path.isdir(dirname):
 			os.makedirs(dirname)
+
 		label_list = [label for label in sys.argv[5]]
 		for aln_tool in aln_tool_list:
 			id_list = []

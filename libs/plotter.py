@@ -17,6 +17,9 @@ N_thre = 0.1
 
 
 def save_to_csv(stats, src_dir, aln_tool_list):
+	dirname='{}/label_dis'.format(src_dir)
+	if not os.path.isdir(dirname):
+		os.makedirs(dirname)
 	with open('{}/label_dis/label_dis.csv'.format(src_dir), 'w') as w:
 		cnt = 0
 		writer = csv.writer(w, delimiter=',')
@@ -326,8 +329,12 @@ def do_nm(align_array, label_array):
 	nm_list = np.zeros(len(label_id_list))
 
 	for _id in label_id_list:
-		nm_list[cnt] = align_array[_id]['num_mismatch'][0]/len(align_array[_id]['seq'][0])
-		cnt += 1
+		try:
+			nm_list[cnt] = align_array[_id]['num_mismatch'][0]/len(align_array[_id]['seq'][0])
+			cnt += 1
+		except:
+			print(_id)
+
 
 	return nm_list
 

@@ -9,7 +9,6 @@ usage()
 	echo "-t	--thread	<int>	Number of thread to use" 
 	echo "-k	--keep	Don't flush the sam file after alignment" 
 	echo "-s 	--subset 	<str>	return the subset of sequencing reads according to the labels (in capitals, e.g. PSCO)" 
-
 }
 
 function to_abs	{
@@ -88,7 +87,7 @@ if [[ -z "$MAXPROC" ]]; then
 fi
 
 if [[ -z "$KEEP_SAM" ]]; then
-	KEEP_SAM=false
+	KEEP_SAM=NO
 fi
 
 echo "Calculate number of reads"
@@ -113,13 +112,13 @@ bash ${EXECDIR}/libs/run_kcn.sh $OUTDIR/kcn_histo $DATA $ECVLOC
 
 #analysis modules
 echo "Generate reports"
-#mkdir -p ${OUTDIR}/label_dis
-#mkdir -p ${OUTDIR}/subset
-python ${EXECDIR}/analysis.py ${OUTDIR} ${ECVLOC} ${DATA} ${READSIZE} ${SUBSET}
+mkdir -p ${OUTDIR}/label_dis
+mkdir -p ${OUTDIR}/subset
+python -i ${EXECDIR}/analysis.py ${OUTDIR} ${ECVLOC} ${DATA} ${READSIZE} ${SUBSET}
 
 #flush sam files
-if [ "$KEEP_SAM" = "YES" ]; then
+if [ "$KEEP_SAM" = "NO" ]; then
 	for tool in bowtie2-local bowtie2-endtoend bwa-mem bwa-endtoend; do
-		rm ${OUTDIR}/${tool}/Pauto/${DATA}_ecv_all.sam
+		rm ${OUTDIR}/${tool}/${DATA}_ecv_all.sam
 	done
 fi

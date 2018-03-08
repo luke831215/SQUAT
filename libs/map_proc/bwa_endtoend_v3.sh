@@ -3,8 +3,8 @@
 
 #1/bin/bash
 
-if [ "$#" -lt "4" ]; then
-	echo "Using:" $0 "[DataName] [RefGenome] [EDITDIST] [(A)ll, (B)uild, (I)ds, (P)ostAA, (S)tats, (U)pload, (W)ipe]"
+if [ "$#" -lt "5" ]; then
+	echo "Using:" $0 "[DataName] [RefGenome] [PARASET] [SRCDIR] [(A)ll, (B)uild, (E)xtract, (I)ds, (P)ostAA, (S)tats, (U)pload, (W)ipe]"
 	exit
 fi
 
@@ -12,7 +12,8 @@ MAXPROC=$(($(grep -c ^processor /proc/cpuinfo)/2))
 
 DATANAME=$1
 REFGENOME=$2
-EDITDIST="-n $3"
+PARASET=$3
+SRCRDIR=$4
 
 if [ "${3}" == "auto"  ]; then
 	unset EDITDIST
@@ -21,19 +22,22 @@ fi
 RAW="${DATANAME%_rn*}"
 GSTD="${RAW}_gstd"
 
-WORKDIR="P${3}"
+#WORKDIR="P${3}"
+WORKDIR="."
 LOGSDIR="${WORKDIR}/log"
 DATADIR="${WORKDIR}/final"
 IDLSDIR="${WORKDIR}/ids"
+IDXDIR="${WORKDIR}/index"
 
-BWAPATH="/home/luke831215/bcnfs/wcchung/CloudRS/bwa/bwa-0.7.15"
-SAMPATH="/home/luke831215/bcnfs/wcchung/CloudRS/samtools/samtools-0.1.19"
-UTILDIR="/home/luke831215/bcnfs/wcchung/CloudRS/utils"
+BWAPATH="${SRCRDIR}/bwa"
+SAMPATH="${SRCRDIR}/samtools"
+UTILDIR="${SRCRDIR}/libs/map_proc/utils"
 
 function do_mkdir {
 	mkdir -p "${LOGSDIR}" &> /dev/null
 	mkdir -p "${DATADIR}" &> /dev/null
 	mkdir -p "${IDLSDIR}" &> /dev/null
+	mkdir -p "${IDXDIR}" &> /dev/null
 }
 
 function do_clean {
@@ -42,6 +46,7 @@ function do_clean {
 	rm -f "${LOGSDIR}/${RAW}"_* &> /dev/null
 	rm -f "${DATADIR}/${RAW}"_* &> /dev/null
 	rm -f "${IDLSDIR}/${RAW}"_* &> /dev/null
+	rm -f "${IDXSDIR}/${RAW}"_* &> /dev/null
 }
 
 function do_wipe {
@@ -51,13 +56,13 @@ function do_wipe {
 
 function do_build {
 	echo "[bwa] bwt"
-	${BWAPATH}/bwa index ${REFGENOME}.fasta 2>&1 | tee ${LOGSDIR}/${DATANAME}_bwt
+	${BWAPATH}/bwa index ${REFGENOME}.fasta -p index/${REFGENOME} 2>&1 | tee ${LOGSDIR}/${DATANAME}_bwt
 
 	echo "[bwa] aln"
-	${BWAPATH}/bwa aln ${EDITDIST} -t ${MAXPROC} "${REFGENOME}.fasta" "${DATANAME}.fastq" -f "${WORKDIR}/${DATANAME}_all.sai" 2>&1 | tee "${LOGSDIR}/${DATANAME}_aln"
+	${BWAPATH}/bwa aln ${EDITDIST} -t ${MAXPROC} "index/${REFGENOME}" "${DATANAME}.fastq" -f "${WORKDIR}/${DATANAME}_all.sai" 2>&1 | tee "${LOGSDIR}/${DATANAME}_aln"
 
 	echo "[bwa] samse"
-	${BWAPATH}/bwa samse "${REFGENOME}.fasta" "${WORKDIR}/${DATANAME}_all.sai" "${DATANAME}.fastq" -f "${WORKDIR}/${DATANAME}_all.sam" 2>&1 | tee "${LOGSDIR}/${DATANAME}_samse"
+	${BWAPATH}/bwa samse "index/${REFGENOME}" "${WORKDIR}/${DATANAME}_all.sai" "${DATANAME}.fastq" -f "${WORKDIR}/${DATANAME}_all.sam" 2>&1 | tee "${LOGSDIR}/${DATANAME}_samse"
 }
 
 
@@ -100,16 +105,20 @@ function do_extract {
 							}
 						}
 
-					# the gold standard shall only have CIGAR flag M
-						if($6 !~ /I|D|N|S|H|P|=|X/) {
-							# find out the answer and export it
-							for(j=12; j<=NF; j++) {
-								if($j ~ /(MD:Z:)/) {
-									print $1"\t"substr($j, 6) > RNANAME
-									break
+						if(hasNoXAtag == 1) {
+							# the gold standard shall only have CIGAR flag M
+							if($6 !~ /I|D|N|S|H|P|=|X/) {
+								# find out the answer and export it
+								for(j=12; j<=NF; j++) {
+									if($j ~ /(MD:Z:)/) {
+										print $1"\t"substr($j, 6) > RNANAME
+
+										break
+									}
 								}
 							}
 						}
+
 						break
 					}
 				}
@@ -149,6 +158,9 @@ function do_ids {
 	touch "${IDLSDIR}/${RAW}_5_mappable_unique_subonly.ids" 
 	touch "${IDLSDIR}/${RAW}_6_mappable_unique_clips.ids" 
 	touch "${IDLSDIR}/${RAW}_7_mappable_unique_others.ids" 
+	#touch "${IDLSDIR}/${RAW}_8_mappable_unique_altsite.ids" 
+	touch "${IDLSDIR}/${RAW}_8_mappable_special.ids" 
+	touch "${IDLSDIR}/${RAW}_9_mappable_ref_contain_N.ids"
 
 	printf "%s" ""
 	cat "${WORKDIR}/${DATANAME}_all.sam" | grep -v "^@" | \
@@ -159,6 +171,8 @@ function do_ids {
 		-v IDSET5="${IDLSDIR}/${RAW}_5_mappable_unique_subonly.ids" \
 		-v IDSET6="${IDLSDIR}/${RAW}_6_mappable_unique_clips.ids" \
 		-v IDSET7="${IDLSDIR}/${RAW}_7_mappable_unique_others.ids" \
+		-v IDSET8="${IDLSDIR}/${RAW}_8_mappable_special.ids" \
+		-v IDSET9="${IDLSDIR}/${RAW}_9_mappable_ref_contain_N.ids" \
 		-v IDSETA="${IDLSDIR}/${RAW}_0_reads.info.tmp" \
 		-v REPEAT="${IDLSDIR}/${RAW}_0_repeats.stock" \
 		-v LNDESC="${LNDESC}" \
@@ -217,34 +231,40 @@ function do_ids {
 							}
 						}
 
-						# extract reads having only M CIGAR flag; they
-						# are perfect match and sub-only mismatch reads
-						if($6 !~ /I|D|N|S|H|P|=|X/) {
-							# perfect matched reads having no misatches
-							for(j=12; j<=NF; j++) {
-								if($j ~ /(NM:i:)/) {
-									if(int(substr($j,6))==0) {
-										print $1 > IDSET4
-										print $1"\tP\t1" > IDSETA
-									} else {
-										print $1 > IDSET5
-										print $1"\tS\t1" > IDSETA
-									}
+						if(hasNoXAtag == 1) {
+							# extract reads having only M CIGAR flag; they
+							# are perfect match and sub-only mismatch reads
+							if($6 !~ /I|D|N|S|H|P|=|X/) {
+								# perfect matched reads having no misatches
+								for(j=12; j<=NF; j++) {
+									if($j ~ /(NM:i:)/) {
+										if(int(substr($j,6))==0) {
+											print $1 > IDSET4
+											print $1"\tP\t1" > IDSETA
+										} else {
+											print $1 > IDSET5
+											print $1"\tS\t1" > IDSETA
+										}
 
-									break
+										break
+									}
 								}
 							}
+							#reads containing clips
+							else if($6 ~ /S|H/) {
+								print $1 > IDSET6
+								print $1"\tC\t1" > IDSETA
+							}
+							# reads of mixing types of mismatches
+							else {
+								print $1 > IDSET7
+								print $1"\tO\t1" > IDSETA	
+							}
+						} else {
+							print $1 > IDSET8
+							print $1"\tA\t1" > IDSETA
 						}
-						#reads containing clips
-						else if($6 ~ /S|H/) {
-							print $1 > IDSET6
-							print $1"\tC\t1" > IDSETA
-						}
-						# reads of mixing types of mismatches
-						else {
-							print $1 > IDSET7
-							print $1"\tO\t1" > IDSETA	
-						}
+
 						break
 					}
 				}
@@ -315,27 +335,28 @@ function do_upload {
 	printf "\n"
 }
 
-if [ "$4" == "A" ]; then
+if [ "$5" == "A" ]; then
 	do_clean
 	do_build
 	do_extract
 	do_ids
-elif [ "$4" == "B" ]; then
+elif [ "$5" == "B" ]; then
 	do_clean
 	do_build
-elif [ "$4" == "E" ]; then
+elif [ "$5" == "E" ]; then
 	do_mkdir
 	do_extract
-elif [ "$4" == "I" ]; then
+elif [ "$5" == "I" ]; then
 	do_ids
-elif [ "$4" == "P" ]; then
+elif [ "$5" == "P" ]; then
 	do_clean
 	do_build
 	do_ids
-elif [ "$4" == "S" ]; then
+elif [ "$5" == "S" ]; then
 	do_stats
-elif [ "$4" == "U" ]; then
+elif [ "$5" == "U" ]; then
 	do_upload
-elif [ "$4" == "W" ]; then
+elif [ "$5" == "W" ]; then
 	do_wipe
 fi
+

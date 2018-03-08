@@ -1,7 +1,7 @@
 #1/bin/bash
 
-if [ "$#" -lt "4" ]; then
-	echo "Using:" $0 "[DataName] [RefGenome] [PARASET] [(A)ll, (B)uild, (E)xtract, (I)ds, (P)ostAA, (S)tats, (U)pload, (W)ipe]"
+if [ "$#" -lt "5" ]; then
+	echo "Using:" $0 "[DataName] [RefGenome] [PARASET] [SRCDIR] [(A)ll, (B)uild, (E)xtract, (I)ds, (P)ostAA, (S)tats, (U)pload, (W)ipe]"
 	exit
 fi
 
@@ -9,7 +9,8 @@ MAXPROC=$(($(grep -c ^processor /proc/cpuinfo)/2))
 
 DATANAME=$1
 REFGENOME=$2
-PARASET=""
+PARASET=$3
+SRCRDIR=$4
 
 if [ "${3}" == "auto"  ]; then
 	unset PARASET
@@ -20,19 +21,22 @@ fi
 RAW="${DATANAME%_rn*}"
 GSTD="${RAW}_gstd"
 
-WORKDIR="P${3}"
+#WORKDIR="P${3}"
+WORKDIR="."
 LOGSDIR="${WORKDIR}/log"
 DATADIR="${WORKDIR}/final"
 IDLSDIR="${WORKDIR}/ids"
+IDXDIR="${WORKDIR}/index"
 
-BWAPATH="/home/ph/mnt/bcnfs/wcchung/CloudRS/bwa/bwa-0.7.15"
-SAMPATH="/home/ph/mnt/bcnfs/wcchung/CloudRS/samtools/samtools-0.1.19"
-UTILDIR="/home/ph/mnt/bcnfs/wcchung/CloudRS/utils"
+BWAPATH="${SRCRDIR}/bwa"
+SAMPATH="${SRCRDIR}/samtools"
+UTILDIR="${SRCRDIR}/libs/map_proc/utils"
 
 function do_mkdir {
 	mkdir -p "${LOGSDIR}" &> /dev/null
 	mkdir -p "${DATADIR}" &> /dev/null
 	mkdir -p "${IDLSDIR}" &> /dev/null
+	mkdir -p "${IDXDIR}" &> /dev/null
 }
 
 function do_clean {
@@ -41,6 +45,7 @@ function do_clean {
 	rm -f "${LOGSDIR}/${RAW}"_* &> /dev/null
 	rm -f "${DATADIR}/${RAW}"_* &> /dev/null
 	rm -f "${IDLSDIR}/${RAW}"_* &> /dev/null
+	rm -f "${IDXSDIR}/${RAW}"_* &> /dev/null
 }
 
 function do_wipe {
@@ -50,10 +55,10 @@ function do_wipe {
 
 function do_build {
 	echo "[bwa] bwt"
-	${BWAPATH}/bwa index ${REFGENOME}.fasta 2>&1 | tee ${LOGSDIR}/${DATANAME}_bwt
+	${BWAPATH}/bwa index ${REFGENOME}.fasta -p index/${REFGENOME} 2>&1 | tee ${LOGSDIR}/${DATANAME}_bwt
 
 	echo "[bwa] mem"
-	${BWAPATH}/bwa mem ${PARASET} -t ${MAXPROC} -a "${REFGENOME}.fasta" "${DATANAME}.fastq" \
+	${BWAPATH}/bwa mem ${PARASET} -t ${MAXPROC} -a  index/${REFGENOME} "${DATANAME}.fastq" \
 	> "${WORKDIR}/${DATANAME}_all.sam" 2> >(tee "${LOGSDIR}/${DATANAME}_mem" >&2)
 }
 
@@ -125,12 +130,14 @@ function do_ids {
 	}'
 	printf "\n"
 
+	touch "${IDLSDIR}/${RAW}_0_repeats.stock" 
 	touch "${IDLSDIR}/${RAW}_2_unmappable.ids" 
 	touch "${IDLSDIR}/${RAW}_3_mappable_multi.ids" 
 	touch "${IDLSDIR}/${RAW}_4_mappable_unique_noerror.ids" 
 	touch "${IDLSDIR}/${RAW}_5_mappable_unique_subonly.ids" 
 	touch "${IDLSDIR}/${RAW}_6_mappable_unique_clips.ids" 
 	touch "${IDLSDIR}/${RAW}_7_mappable_unique_others.ids" 
+	touch "${IDLSDIR}/${RAW}_8_mappable_special.ids" 
 	
 	printf "%s" ""
 	cat "${WORKDIR}/${DATANAME}_all.sam" | grep -v "^@" | \
@@ -140,6 +147,7 @@ function do_ids {
 		-v IDSET5="${IDLSDIR}/${RAW}_5_mappable_unique_subonly.ids" \
 		-v IDSET6="${IDLSDIR}/${RAW}_6_mappable_unique_clips.ids" \
 		-v IDSET7="${IDLSDIR}/${RAW}_7_mappable_unique_others.ids" \
+		-v IDSET8="${IDLSDIR}/${RAW}_8_mappable_special.ids" \
 		-v IDSETA="${IDLSDIR}/${RAW}_0_reads.info.tmp2" \
 		-v REPEAT="${IDLSDIR}/${RAW}_0_repeats.stock" \
 		-v LNDESC="${LNDESC}" \
@@ -216,9 +224,15 @@ function do_ids {
 		# of mapping qualities of a read shall be 0
 		for(i=1;i<=n;i++) {
 			if(int(a[sa[i]])==0) {
-				print sa[i] > IDSET3
-				print sa[i]"\t"b[sa[i]] > REPEAT
-				print sa[i]"\tM\t"b[sa[i]] > IDSETA
+				if(int(b[sa[i]])==1) {
+					print sa[i] > IDSET8
+					print sa[i]"\tX\t"b[sa[i]] > IDSETA
+				}
+				else {
+					print sa[i] > IDSET3
+					print sa[i]"\t"b[sa[i]] > REPEAT
+					print sa[i]"\tM\t"b[sa[i]] > IDSETA
+				}
 			}
 
 			if(i%100000==0) {
@@ -286,27 +300,28 @@ function do_upload {
 	printf "\n"
 }
 
-if [ "$4" == "A" ]; then
+if [ "$5" == "A" ]; then
 	do_clean
 	do_build
 	do_extract
 	do_ids
-elif [ "$4" == "B" ]; then
+elif [ "$5" == "B" ]; then
 	do_clean
 	do_build
-elif [ "$4" == "E" ]; then
+elif [ "$5" == "E" ]; then
 	do_mkdir
 	do_extract
-elif [ "$4" == "I" ]; then
+elif [ "$5" == "I" ]; then
 	do_ids
-elif [ "$4" == "P" ]; then
+elif [ "$5" == "P" ]; then
 	do_clean
+	rm -f "${DATADIR}/${RAW}"_* &> /dev/null
 	do_build
 	do_ids
-elif [ "$4" == "S" ]; then
+elif [ "$5" == "S" ]; then
 	do_stats
-elif [ "$4" == "U" ]; then
+elif [ "$5" == "U" ]; then
 	do_upload
-elif [ "$4" == "W" ]; then
+elif [ "$5" == "W" ]; then
 	do_wipe
 fi
