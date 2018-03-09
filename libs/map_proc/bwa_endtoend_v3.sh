@@ -152,27 +152,23 @@ function do_ids {
 
 	LNDESC="\rextract (%s/2): %s processed"
 	
-	touch "${IDLSDIR}/${RAW}_2_unmappable.ids" 
-	touch "${IDLSDIR}/${RAW}_3_mappable_multi.ids" 
-	touch "${IDLSDIR}/${RAW}_4_mappable_unique_noerror.ids" 
-	touch "${IDLSDIR}/${RAW}_5_mappable_unique_subonly.ids" 
-	touch "${IDLSDIR}/${RAW}_6_mappable_unique_clips.ids" 
-	touch "${IDLSDIR}/${RAW}_7_mappable_unique_others.ids" 
-	#touch "${IDLSDIR}/${RAW}_8_mappable_unique_altsite.ids" 
-	touch "${IDLSDIR}/${RAW}_8_mappable_special.ids" 
-	touch "${IDLSDIR}/${RAW}_9_mappable_ref_contain_N.ids"
-
+	touch "${IDLSDIR}/${RAW}_7_contain_N.ids"
+	touch "${IDLSDIR}/${RAW}_6_unmappable.ids" 
+	touch "${IDLSDIR}/${RAW}_5_mappable_multi.ids" 
+	touch "${IDLSDIR}/${RAW}_1_mappable_unique_noerror.ids" 
+	touch "${IDLSDIR}/${RAW}_2_mappable_unique_subonly.ids" 
+	touch "${IDLSDIR}/${RAW}_3_mappable_unique_clips.ids" 
+	touch "${IDLSDIR}/${RAW}_4_mappable_unique_others.ids" 
+	
 	printf "%s" ""
 	cat "${WORKDIR}/${DATANAME}_all.sam" | grep -v "^@" | \
-	awk -v IDSET1="${IDLSDIR}/${RAW}_1_contain_N.ids" \
-		-v IDSET2="${IDLSDIR}/${RAW}_2_unmappable.ids" \
-		-v IDSET3="${IDLSDIR}/${RAW}_3_mappable_multi.ids" \
-		-v IDSET4="${IDLSDIR}/${RAW}_4_mappable_unique_noerror.ids" \
-		-v IDSET5="${IDLSDIR}/${RAW}_5_mappable_unique_subonly.ids" \
-		-v IDSET6="${IDLSDIR}/${RAW}_6_mappable_unique_clips.ids" \
-		-v IDSET7="${IDLSDIR}/${RAW}_7_mappable_unique_others.ids" \
-		-v IDSET8="${IDLSDIR}/${RAW}_8_mappable_special.ids" \
-		-v IDSET9="${IDLSDIR}/${RAW}_9_mappable_ref_contain_N.ids" \
+	awk -v IDSET1="${IDLSDIR}/${RAW}_7_contain_N.ids" \
+	    -v IDSET2="${IDLSDIR}/${RAW}_6_unmappable.ids" \
+		-v IDSET3="${IDLSDIR}/${RAW}_5_mappable_multi.ids" \
+		-v IDSET4="${IDLSDIR}/${RAW}_1_mappable_unique_noerror.ids" \
+		-v IDSET5="${IDLSDIR}/${RAW}_2_mappable_unique_subonly.ids" \
+		-v IDSET6="${IDLSDIR}/${RAW}_3_mappable_unique_clips.ids" \
+		-v IDSET7="${IDLSDIR}/${RAW}_4_mappable_unique_others.ids" \
 		-v IDSETA="${IDLSDIR}/${RAW}_0_reads.info.tmp" \
 		-v REPEAT="${IDLSDIR}/${RAW}_0_repeats.stock" \
 		-v LNDESC="${LNDESC}" \
@@ -214,11 +210,6 @@ function do_ids {
 						}
 
 						break
-					} else if($i == "XT:A:N") {
-						print $1 > IDSET9
-						print $1"\tR\t1" > IDSETA
-
-						break
 					} else if($i == "XT:A:U") {
 						hasNoXAtag = 1
 
@@ -231,38 +222,33 @@ function do_ids {
 							}
 						}
 
-						if(hasNoXAtag == 1) {
-							# extract reads having only M CIGAR flag; they
-							# are perfect match and sub-only mismatch reads
-							if($6 !~ /I|D|N|S|H|P|=|X/) {
-								# perfect matched reads having no misatches
-								for(j=12; j<=NF; j++) {
-									if($j ~ /(NM:i:)/) {
-										if(int(substr($j,6))==0) {
-											print $1 > IDSET4
-											print $1"\tP\t1" > IDSETA
-										} else {
-											print $1 > IDSET5
-											print $1"\tS\t1" > IDSETA
-										}
-
-										break
+						# extract reads having only M CIGAR flag; they
+						# are perfect match and sub-only mismatch reads
+						if($6 !~ /I|D|N|S|H|P|=|X/) {
+							# perfect matched reads having no misatches
+							for(j=12; j<=NF; j++) {
+								if($j ~ /(NM:i:)/) {
+									if(int(substr($j,6))==0) {
+										print $1 > IDSET4
+										print $1"\tP\t1" > IDSETA
+									} else {
+										print $1 > IDSET5
+										print $1"\tS\t1" > IDSETA
 									}
+
+									break
 								}
 							}
-							#reads containing clips
-							else if($6 ~ /S|H/) {
-								print $1 > IDSET6
-								print $1"\tC\t1" > IDSETA
-							}
-							# reads of mixing types of mismatches
-							else {
-								print $1 > IDSET7
-								print $1"\tO\t1" > IDSETA	
-							}
-						} else {
-							print $1 > IDSET8
-							print $1"\tA\t1" > IDSETA
+						}
+						#reads containing clips
+						else if($6 ~ /S|H/) {
+							print $1 > IDSET6
+							print $1"\tC\t1" > IDSETA
+						}
+						# reads of mixing types of mismatches
+						else {
+							print $1 > IDSET7
+							print $1"\tO\t1" > IDSETA	
 						}
 
 						break
@@ -350,6 +336,7 @@ elif [ "$5" == "I" ]; then
 	do_ids
 elif [ "$5" == "P" ]; then
 	do_clean
+	rm -f "${DATADIR}/${RAW}"_* &> /dev/null
 	do_build
 	do_ids
 elif [ "$5" == "S" ]; then

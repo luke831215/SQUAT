@@ -112,6 +112,9 @@ def save_to_pdf(all_pdf_fpath, plot_figures, table_figures):
 	plt.close('all')  # closing all open figures
 
 
+def do_genome_eval_table(GAGE=False):
+	pass
+
 def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, xlabel='', label='', cigar_list={}):
 	hist, bins = np.histogram(data, bins=20)
 	

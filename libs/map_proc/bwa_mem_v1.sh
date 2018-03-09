@@ -109,7 +109,7 @@ function do_ids {
 	printf "%s" ""
 	cat ${RAWFILE} | \
 	awk 'NR%4==1 {printf "%s\t", substr($0, 2)} NR%4==2 {printf "%s\n", $0}' | \
-	awk -v IDSET1="${IDLSDIR}/${RAW}_1_contain_N.ids" \
+	awk -v IDSET1="${IDLSDIR}/${RAW}_7_contain_N.ids" \
 		-v IDSETA="${IDLSDIR}/${RAW}_0_reads.info.tmp1" \
 		-v LNDESC="${LNDESC}" \
 	'BEGIN {
@@ -130,24 +130,21 @@ function do_ids {
 	}'
 	printf "\n"
 
-	touch "${IDLSDIR}/${RAW}_0_repeats.stock" 
-	touch "${IDLSDIR}/${RAW}_2_unmappable.ids" 
-	touch "${IDLSDIR}/${RAW}_3_mappable_multi.ids" 
-	touch "${IDLSDIR}/${RAW}_4_mappable_unique_noerror.ids" 
-	touch "${IDLSDIR}/${RAW}_5_mappable_unique_subonly.ids" 
-	touch "${IDLSDIR}/${RAW}_6_mappable_unique_clips.ids" 
-	touch "${IDLSDIR}/${RAW}_7_mappable_unique_others.ids" 
-	touch "${IDLSDIR}/${RAW}_8_mappable_special.ids" 
+	touch "${IDLSDIR}/${RAW}_6_unmappable.ids" 
+	touch "${IDLSDIR}/${RAW}_5_mappable_multi.ids" 
+	touch "${IDLSDIR}/${RAW}_1_mappable_unique_noerror.ids" 
+	touch "${IDLSDIR}/${RAW}_2_mappable_unique_subonly.ids" 
+	touch "${IDLSDIR}/${RAW}_3_mappable_unique_clips.ids" 
+	touch "${IDLSDIR}/${RAW}_4_mappable_unique_others.ids" 
 	
 	printf "%s" ""
 	cat "${WORKDIR}/${DATANAME}_all.sam" | grep -v "^@" | \
-	awk -v IDSET2="${IDLSDIR}/${RAW}_2_unmappable.ids" \
-		-v IDSET3="${IDLSDIR}/${RAW}_3_mappable_multi.ids" \
-		-v IDSET4="${IDLSDIR}/${RAW}_4_mappable_unique_noerror.ids" \
-		-v IDSET5="${IDLSDIR}/${RAW}_5_mappable_unique_subonly.ids" \
-		-v IDSET6="${IDLSDIR}/${RAW}_6_mappable_unique_clips.ids" \
-		-v IDSET7="${IDLSDIR}/${RAW}_7_mappable_unique_others.ids" \
-		-v IDSET8="${IDLSDIR}/${RAW}_8_mappable_special.ids" \
+	awk -v IDSET2="${IDLSDIR}/${RAW}_6_unmappable.ids" \
+		-v IDSET3="${IDLSDIR}/${RAW}_5_mappable_multi.ids" \
+		-v IDSET4="${IDLSDIR}/${RAW}_1_mappable_unique_noerror.ids" \
+		-v IDSET5="${IDLSDIR}/${RAW}_2_mappable_unique_subonly.ids" \
+		-v IDSET6="${IDLSDIR}/${RAW}_3_mappable_unique_clips.ids" \
+		-v IDSET7="${IDLSDIR}/${RAW}_4_mappable_unique_others.ids" \
 		-v IDSETA="${IDLSDIR}/${RAW}_0_reads.info.tmp2" \
 		-v REPEAT="${IDLSDIR}/${RAW}_0_repeats.stock" \
 		-v LNDESC="${LNDESC}" \
@@ -224,15 +221,9 @@ function do_ids {
 		# of mapping qualities of a read shall be 0
 		for(i=1;i<=n;i++) {
 			if(int(a[sa[i]])==0) {
-				if(int(b[sa[i]])==1) {
-					print sa[i] > IDSET8
-					print sa[i]"\tX\t"b[sa[i]] > IDSETA
-				}
-				else {
-					print sa[i] > IDSET3
-					print sa[i]"\t"b[sa[i]] > REPEAT
-					print sa[i]"\tM\t"b[sa[i]] > IDSETA
-				}
+				print sa[i] > IDSET3
+				print sa[i]"\t"b[sa[i]] > REPEAT
+				print sa[i]"\tM\t"b[sa[i]] > IDSETA
 			}
 
 			if(i%100000==0) {
