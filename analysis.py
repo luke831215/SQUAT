@@ -12,15 +12,15 @@ from importlib import reload
 
 def build_subset(id_list, in_fpath, out_fpath):
 	if len(id_list) == 0:
-		print("Subset size is zero.")
+		raise ValueError("Subset size is zero.")
 		return
 	else:
 		with open (in_fpath, 'r') as infile:
 			with open(out_fpath, 'w') as w:
-				current_idx = 0
+				current_idx, read_id = 0, 0
 				length = len(id_list)
 				for line in infile:
-					if int(line.strip()[1:]) != id_list[current_idx]:
+					if read_id != id_list[current_idx]:
 						next(infile)
 						next(infile)
 						next(infile)
@@ -31,6 +31,7 @@ def build_subset(id_list, in_fpath, out_fpath):
 						if current_idx + 1 == length:
 							break
 						current_idx += 1
+					read_id += 1
 
 
 def extract_sam_info(data, read_size, sam_file):
@@ -103,12 +104,12 @@ def get_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_
 	return cigar_dict
 
 
-def draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath):
-	plotter.do_basic_stats(table_figures, ecv_fpath)
-	plotter.do_label_dis_table(label_distribution, src_dir, aln_tool_list, table_figures)
+def draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath, plot_figures):
+	plotter.do_basic_stats(plot_figures, ecv_fpath)
+	plotter.do_label_dis_table(label_distribution, src_dir, aln_tool_list, plot_figures)
 
 
-def draw_genome_eval_table(stats, src_dir, table_figures):
+def draw_genome_eval_table(stats, src_dir, plot_figures):
 	stats.insert(0, ["Genome stats", "Value"])
 
 	fig = plt.figure(figsize=(15, 10))
@@ -122,7 +123,7 @@ def draw_genome_eval_table(stats, src_dir, table_figures):
 	ax.set_title('Genome evaluation stats')
 	#fig.tight_layout()
 	fig.savefig('{}/images/eval_table.png'.format(src_dir))
-	table_figures.append(fig)
+	plot_figures.append(fig)
 
 
 def draw_report_imgs(aln_tool, label_array, align_array, src_dir, data, read_size, cigar_dict, plot_figures):
@@ -174,13 +175,16 @@ if __name__ == '__main__':
 	read_size = int(read_size)
 	align_info_dict = {}
 	plot_figures = []
-	table_figures = []
+	#table_figures = []
 
-	label_dict = get_label_dict(data, aln_tool_list, read_size)
+
+	#plot basic stats of sequences
+
 	#label distribution table
+	label_dict = get_label_dict(data, aln_tool_list, read_size)
 	print("Generate label distribution graph")
 	label_distribution = get_label_distribution(labels, aln_tool_list, src_dir, data, read_size)
-	draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath)
+	draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath, plot_figures)
 
 	print('Extract alignment information from sam files')
 	
@@ -210,13 +214,13 @@ if __name__ == '__main__':
 
 	#draw genome evaluation table
 	genome_stats = plotter.get_genome_eval_stat(src_dir)
-	draw_genome_eval_table(genome_stats, src_dir, table_figures)
+	draw_genome_eval_table(genome_stats, src_dir, plot_figures)
 
 	#make report
 	all_pdf_fpath = src_dir+'/report.pdf'
 	all_html_fpath = src_dir+'/report.html'
 	template_fpath = os.path.dirname(sys.argv[0])+'/template/template.html'
-	plotter.save_to_pdf(all_pdf_fpath, plot_figures, table_figures)
+	plotter.save_to_pdf(all_pdf_fpath, plot_figures)
 	plotter.save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distribution, genome_stats)
 
 	#output subset reads if specified

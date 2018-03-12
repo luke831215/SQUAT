@@ -104,18 +104,12 @@ def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distributi
 			w.write(str(soup))
 
 
-def save_to_pdf(all_pdf_fpath, plot_figures, table_figures):
+def save_to_pdf(all_pdf_fpath, plot_figures):
 	"""concat all figures into report.pdf"""
 
 	all_pdf_file = PdfPages(all_pdf_fpath)
-	for figure in table_figures:
-		all_pdf_file.savefig(figure)
 	for figure in plot_figures:
-		try:
-			all_pdf_file.savefig(figure)
-		except:
-			print(figure)
-			sys.exit(1)
+		all_pdf_file.savefig(figure)
 	try:  # for matplotlib < v.1.0
 	    d = all_pdf_file.infodict()
 	    d['Title'] = 'QUAST full report'
@@ -355,7 +349,7 @@ def flatten(label_distribution, aln_tool_list):
 	return np.ravel(stats).reshape(len(labels), len(aln_tool_list))
 
 
-def do_label_dis_table(label_dis, src_dir, aln_tool_list, table_figures):
+def do_label_dis_table(label_dis, src_dir, aln_tool_list, plot_figures):
 	descriptions = ['P (no error)', 'S (substitution error)', 'C (contain clips)', 'O (other error)', 'M (multi-mapped)', 'F (unmapped)', 'N (contain N)']
 	axes = []
 	num_col = len(aln_tool_list)+3
@@ -393,14 +387,14 @@ def do_label_dis_table(label_dis, src_dir, aln_tool_list, table_figures):
 
 	#title = 'Label Distribution Table'
 	#plt.title(title, fontdict={'fontsize': 30})
-	table_figures.append(fig)
+	plot_figures.append(fig)
 	#plt.savefig('{0}/label_dis/imgs/table.png'.format(src_dir))
 	plt.close()
 
 	#save_to_csv(flatten(label_dis, aln_tool_list), src_dir, aln_tool_list)
 
 
-def do_basic_stats(table_figures, ecv_fpath):
+def do_basic_stats(plot_figures, ecv_fpath):
 	pass
 
 
