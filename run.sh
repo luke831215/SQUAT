@@ -70,6 +70,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    -g|--gage)
+    GAGELOC="$( to_abs $2 )"
+    shift # past argument
+    shift # past value
+    ;;
     *)    # unknown option
 	echo "Unknown option: "$1 >&2
 	exit 1
@@ -112,9 +117,17 @@ bash ${EXECDIR}/libs/run_kcn.sh $OUTDIR/kcn_histo $DATA $ECVLOC
 
 #analysis modules
 echo "Generate reports"
-mkdir -p ${OUTDIR}/label_dis
 mkdir -p ${OUTDIR}/subset
-python -i ${EXECDIR}/analysis.py ${OUTDIR} ${ECVLOC} ${DATA} ${READSIZE} ${SUBSET}
+mkdir -p ${OUTDIR}/images
+python ${EXECDIR}/analysis.py ${OUTDIR} ${ECVLOC} ${DATA} ${READSIZE} ${SUBSET}
+
+#quast evaluation
+echo "Evaluate genome assemblies"
+if [[ -z "$GAGELOC" ]]; then
+	python ${EXECDIR}/libs/quast/quast.py ${REFLOC} -o ${OUTDIR}/quast --min-contig 200 -t ${MAXPROC} &> /dev/null
+else
+	python ${EXECDIR}/libs/quast/quast.py ${REFLOC} -o ${OUTDIR}/quast --min-contig 200 -t ${MAXPROC} -R ${GAGELOC} --gage &> /dev/null
+fi
 
 #flush sam files
 if [ "$KEEP_SAM" = "NO" ]; then

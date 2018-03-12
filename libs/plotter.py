@@ -29,10 +29,10 @@ def save_to_csv(stats, src_dir, aln_tool_list):
 			cnt += 1
 
 
-def fill_in_table(stats, main_div, soup, template_fpath):
+def fill_in_table(stats, section, soup, template_fpath):
 	label_list = ['P', 'S', 'C', 'O', 'M', 'F', 'N']
 	icon_dirpath = "{}/icons".format(os.path.dirname(template_fpath))
-	label_div = main_div.findAll('div', {"class": 'label'})
+	label_div = section.findAll('div', {"class": 'label'})
 
 	for i in range(len(label_div)):
 		#remove original img tag
@@ -46,31 +46,34 @@ def fill_in_table(stats, main_div, soup, template_fpath):
 
 	for i in range(len(stats)):
 		for j in range(len(stats[0])):
-			cell = main_div.find('td', id='{0}{1}'.format(labels[i], j+1))
+			cell = section.find('td', id='{0}{1}'.format(labels[i], j+1))
 			cell.string = stats[i][j]
 
 
-def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distribution):
+def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distribution, gen_stats):
 	"""concat all figures into report.html by inserting figures into template.html"""
 
 	src_dir = os.path.dirname(all_html_fpath)
 	with open(template_fpath) as file:
 		soup = BeautifulSoup(file, "lxml")
-		main_div = soup.find('div', {"class": 'main'})
+		sec_one = soup.find('div', {"class": 'sec-1'})
 		
+		#section I
 		#set up label dis. table
-		fill_in_table(flatten(label_distribution, aln_tool_list), main_div, soup, template_fpath)
+		fill_in_table(flatten(label_distribution, aln_tool_list), sec_one, soup, template_fpath)
 
 		#plot label dis bar first
+		
 		img_fpath = '{}/label_dis/bar.png'.format(src_dir)
 		data_uri = base64.b64encode(open(img_fpath, 'rb').read()).decode('utf-8').replace('\n', '')
 		new_div = soup.new_tag("div", id="label-dis-barchart", **{'class': 'inner'})
 		img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri))
 		new_div.append(img_src)
-		main_div.append(new_div)
+		sec_one.append(new_div)
 
+		#section II
 		#the rest of distribution graph for each aligner
-		
+		sec_two = soup.find('div', {"class": 'sec-2'})
 		for aln_tool in aln_tool_list:
 			cnt = 1
 			files = glob.glob('{0}/{1}/imgs/*.png'.format(src_dir, aln_tool))
@@ -80,9 +83,23 @@ def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distributi
 				new_div = soup.new_tag("div", id="{0}-{1}".format(aln_tool, cnt), **{'class': 'inner'})
 				img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri))
 				new_div.append(img_src)
-				main_div.append(new_div)
+				sec_two.append(new_div)
 				cnt += 1
 
+		#section III
+		#genome evaluation table
+		#sec_three = soup.find('div', {"class": 'sec-3'})
+		gen_eval_table = soup.find('table', id="gen-eval")
+		for i in range(len(gen_stats)):
+			new_tr = soup.new_tag('tr')
+			stat, value = soup.new_tag('td'), soup.new_tag('td')
+			stat.string = gen_stats[i][0]
+			value.string = gen_stats[i][1]
+			new_tr.append(stat)
+			new_tr.append(value)
+			gen_eval_table.append(new_tr)
+
+		#write report.html
 		with open(all_html_fpath, 'w') as w:
 			w.write(str(soup))
 
@@ -92,7 +109,7 @@ def save_to_pdf(all_pdf_fpath, plot_figures, table_figures):
 
 	all_pdf_file = PdfPages(all_pdf_fpath)
 	for figure in table_figures:
-		all_pdf_file.savefig(figure, bbox_inches='tight')
+		all_pdf_file.savefig(figure)
 	for figure in plot_figures:
 		try:
 			all_pdf_file.savefig(figure)
@@ -112,8 +129,71 @@ def save_to_pdf(all_pdf_fpath, plot_figures, table_figures):
 	plt.close('all')  # closing all open figures
 
 
-def do_genome_eval_table(GAGE=False):
-	pass
+def get_genome_eval_stat(src_dir):
+	if os.path.isfile('{}/quast/gage_report.txt'.format(src_dir)):
+		GAGE = True
+		report_list = ['gage_report.txt', 'report.txt']
+	else:
+		GAGE = False
+		report_list = ['report.txt']
+
+	stats = {}
+	if GAGE:
+		stats_name = [
+				"# Scaffolds", "Scaffold NG50 (Kbp)", "# c. Scaffolds", "c. Scaffold Assembly Size (Mbp)",
+				"Max c. Scaffold (Kbp)", "Scaffold c. NG25 (Kbp)", "Scaffold c. NG50 (Kbp)", "Scaffold c. NG75 (Kbp)", 
+				"Scaffold LG80", "Scaffold LG90", "Scaffold LG99", "# N's per 100 kbp",
+				"GC (%)", "Genome Fraction (%)", "Indels >= 5", "Inversions", "Relocation", "Translocation"
+		]
+		cor_stats_name = [
+				"Contigs #", "Not corrected N50", "Corrected contig #", "Corrected assembly size",
+				"Max correct contig", "Corrected N25", "Corrected N50", "Corrected N75", "LG80", "LG90", "LG99", "# N's per 100 kbp",
+				"GC (%)", "Genome fraction (%)", "Indels >= 5", "Inversions", "Relocation", "Translocation"
+		]
+	else:
+		stats_name = [
+			"# Scaffolds", "Max Scaffold (Kbp)", "Scaffold N25 (Kbp)", "Scaffold N50 (Kbp)", "Scaffold N75 (Kbp)",
+			"Scaffold L80", "Scaffold L90", "Scaffold L99", "# N's per 100 kbp", "GC (%)"
+		]
+		cor_stats_name = [
+				"# contigs", "Largest contig", "N25", "N50", "N75", 
+				"L80", "L90", "L99", "# N's per 100 kbp", "GC (%)"
+		]
+
+	#retrieve all stats in quast report
+	for file in report_list:
+		with open("{0}/quast/{1}".format(src_dir, file)) as infile:
+			next(infile)
+			next(infile)
+			next(infile)
+			for line in infile:
+				try:
+					[name, stat] = re.split(r'\s{2,}', line.strip())[:2]
+					stat = re.search(r"^\d+[.\d+]*", stat.split()[0]).group(0)
+				except:
+					print(line.strip())
+					continue
+					#sys.exit(1)
+				stats[name] = stat
+
+	#extract the wanted stats
+	rows = []
+	for i in range(len(stats_name)):
+		if cor_stats_name[i] not in stats:
+			print(cor_stats_name[i]+' not found')
+			if cor_stats_name[i] == 'LG99':
+				rows.append(['L99', stats['L99']])
+		else:
+			value = stats[cor_stats_name[i]]
+			if '.' not in value:
+				value = int(value)
+				if 'Kbp' in stats_name[i]:
+					value = value / 1000
+				value = '{:,}'.format(round(value))
+			rows.append([stats_name[i], value])
+
+	return rows
+
 
 def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, xlabel='', label='', cigar_list={}):
 	hist, bins = np.histogram(data, bins=20)
@@ -317,7 +397,7 @@ def do_label_dis_table(label_dis, src_dir, aln_tool_list, table_figures):
 	#plt.savefig('{0}/label_dis/imgs/table.png'.format(src_dir))
 	plt.close()
 
-	save_to_csv(flatten(label_dis, aln_tool_list), src_dir, aln_tool_list)
+	#save_to_csv(flatten(label_dis, aln_tool_list), src_dir, aln_tool_list)
 
 
 def do_basic_stats(table_figures, ecv_fpath):

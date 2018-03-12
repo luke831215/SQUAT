@@ -97,7 +97,7 @@ def get_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_
 				"2. Bar below the x-axis: portion of reads with bad quality"
 				)
 	plt.figtext(0.1, 0.05, footnote, va="bottom", ha="left")
-	fig.savefig('{}/label_dis/bar.png'.format(src_dir))
+	fig.savefig('{}/images/label_dis_bar.png'.format(src_dir))
 	plot_figures.append(fig)
 	plt.close()
 	return cigar_dict
@@ -106,6 +106,23 @@ def get_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_
 def draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath):
 	plotter.do_basic_stats(table_figures, ecv_fpath)
 	plotter.do_label_dis_table(label_distribution, src_dir, aln_tool_list, table_figures)
+
+
+def draw_genome_eval_table(stats, src_dir, table_figures):
+	stats.insert(0, ["Genome stats", "Value"])
+
+	fig = plt.figure(figsize=(15, 10))
+	ax = fig.add_subplot(111)
+	#hide axes
+	fig.patch.set_visible(False)
+	ax.axis('off')
+	ax.axis('tight')
+	#draw table and savefig
+	ax.table(cellText=stats, cellLoc='center', loc='center', fontsize=15, bbox=(0.25, 0.25, 0.5, 0.5))
+	ax.set_title('Genome evaluation stats')
+	#fig.tight_layout()
+	fig.savefig('{}/images/eval_table.png'.format(src_dir))
+	table_figures.append(fig)
 
 
 def draw_report_imgs(aln_tool, label_array, align_array, src_dir, data, read_size, cigar_dict, plot_figures):
@@ -152,8 +169,6 @@ def get_label_dict(data, aln_tool_list, read_size):
 if __name__ == '__main__':
 	src_dir, ecv_fpath, data, read_size = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 
-	all_pdf_fpath = src_dir+'/report.pdf'
-	all_html_fpath = src_dir+'/report.html'
 	aln_tool_list = ['bwa-mem', 'bowtie2-local', 'bwa-endtoend', 'bowtie2-endtoend']
 	labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N']
 	read_size = int(read_size)
@@ -168,7 +183,8 @@ if __name__ == '__main__':
 	draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath)
 
 	print('Extract alignment information from sam files')
-	#save alignment info for each aligner tool to align_info_dict
+	
+	#save alignment info for each aligner tool
 	for aln_tool in aln_tool_list:
 		sam_file = '{0}/{1}/{2}_ecv_all.sam'.format(src_dir, aln_tool, data)
 		path = '/'.join(sam_file.split('/')[:-1])+'/align_info'
@@ -178,10 +194,10 @@ if __name__ == '__main__':
 			align_info_dict[aln_tool] = extract_sam_info(data, read_size, sam_file)
 			pickle.dump(align_info_dict[aln_tool], open(path, 'wb'))
 
-	#save label distribution bar, one img for each aligner
+	#save label distribution bar and return cigar information
 	cigar_dict = get_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_figures)
 
-	#Draw distribution graph in terms of NM, CR, AS
+	#Plot distribution graph in terms of NM, CR, AS
 	for aln_tool in aln_tool_list:
 		dirname = "{0}/{1}/imgs".format(src_dir, aln_tool)
 		if not os.path.isdir(dirname):
@@ -191,11 +207,17 @@ if __name__ == '__main__':
 		print("Plot distribution graph from {}".format(aln_tool))
 		align_array = align_info_dict[aln_tool]
 		draw_report_imgs(aln_tool, label_dict[aln_tool], align_array, src_dir, data, read_size, cigar_dict[aln_tool], plot_figures)
-	
-	#regression_plot()
+
+	#draw genome evaluation table
+	genome_stats = plotter.get_genome_eval_stat(src_dir)
+	draw_genome_eval_table(genome_stats, src_dir, table_figures)
+
+	#make report
+	all_pdf_fpath = src_dir+'/report.pdf'
+	all_html_fpath = src_dir+'/report.html'
 	template_fpath = os.path.dirname(sys.argv[0])+'/template/template.html'
 	plotter.save_to_pdf(all_pdf_fpath, plot_figures, table_figures)
-	plotter.save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distribution)
+	plotter.save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distribution, genome_stats)
 
 	#output subset reads if specified
 	if len(sys.argv) == 6:

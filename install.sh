@@ -31,9 +31,17 @@ cd ${INSTDIR}/libs
 git clone https://github.com/refresh-bio/KMC.git
 cd KMC; make DISABLE_ASMLIB=true
 
-#compile kcnLandscape cpp
+#compile kcnLandscape
 cd ${INSTDIR}/libs/kcnLandscape
 g++ histoAnalyze.cpp -o histoAnalyze
+
+#install quast
+cd ${INSTDIR}
+wget https://downloads.sourceforge.net/project/quast/quast-4.6.3.tar.gz
+tar -xzf quast-4.6.3.tar.gz
+mv quast-4.6.3 quast;
+rm quast-4.6.3.tar.gz
+cp ${INSTDIR}/libs/quast_code/* ${INSTDIR}/quast/quast_libs
 
 #install python packages
 echo "install python packages"

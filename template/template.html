@@ -140,8 +140,8 @@
     margin: 0 auto;
   }
 
-  .plot-sec {
-    height: 80%;
+  .sec-1 {
+    /*height: 80%;*/
     padding: 100px;
   }
 
@@ -155,10 +155,6 @@
   th, td {
     border: 1px solid ;
     text-align: center;
-  }
-
-  td {
-    height: 15%;
   }
 
   .label-icon {
@@ -356,7 +352,24 @@
 
 #myBtn:hover {
   background-color: #555;
+}
 
+#gen-eval {
+  border-collapse: collapse;
+  width: 60%;
+}
+
+#gen-eval td, #gen-eval th {
+    border: 1px solid #999;
+    padding: 8px;
+}
+
+#gen-eval tr:nth-child(odd){background-color: #ccc;}
+
+#gen-eval th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
 </style>
 
 </head>
@@ -379,6 +392,14 @@
       
       <input class="ac-input" id="ac-1" name="ac-1" type="checkbox" />
       <label class="ac-label" for="ac-1">I. Data Quality Assessment</label>
+      <article class="ac-text">
+        <div class="ac-sub">
+          <span class="ac-row" onclick="link('#basic-table')">
+            Basic Stats
+          </span>
+        </div>
+      </article>
+
       <article class="ac-text">
         <div class="ac-sub">
           <span class="ac-row" onclick="link('#label-dis-table')">
@@ -480,7 +501,15 @@
 
     <div class="ac">
       <input class="ac-input" id="ac-9" name="ac-9" type="checkbox" />
-      <label class="ac-label" for="ac-9">III. Genome Assembly stats</label>
+      <label class="ac-label" for="ac-9">III. Genome Evaluation</label>
+      <article class="ac-text">
+        <div class="ac-sub">
+          <span class="ac-row" onclick="link('#gen-eval')">
+            Genome Table
+          </span>
+        </div>
+      </article>
+      
     </div>
     <!--/ac-->
 
@@ -524,7 +553,7 @@
   
   <div class="main" id="main" onscroll=scrollFunction()>
     <button onclick="topFunction()" id="btpBtn" title="Go to top"><i class="up"></i>Top</button>
-    <div class="plot-sec">
+    <div class="sec-1">
       <table class="label-dis-table" id="label-dis-table">
         <tr>
           <th colspan="2"><bold>Label Distribution Table</bold></th>
@@ -585,9 +614,19 @@
         </tr>
       </table>
     </div>
+    
+    <div class="sec-2">
+    </div>
+
+    <div class="sec-3">
+      <table id="gen-eval">
+        <tr>
+          <th>Genome stats</th>
+          <th>Value</th>
+        </tr>
+      </table>
+    </div>
   </div>
-
-
 </body>
 
 <script>
