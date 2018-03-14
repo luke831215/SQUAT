@@ -2,7 +2,42 @@
   
   <title>Report</title>
   <script type="text/javascript"> </script>
-  <style>  
+  <link href="web-fonts-with-css/css/fontawesome-all.min.css" rel="stylesheet">
+  <style>
+    .fa,
+    .fas,
+    .far,
+      -moz-osx-font-smoothing: grayscale;
+      -webkit-font-smoothing: antialiased;
+      display: inline-block;
+      font-style: normal;
+      font-variant: normal;
+      text-rendering: auto;
+      line-height: 1; }
+
+        .far {
+      font-family: 'Font Awesome 5 Free';
+      font-weight: 400; }
+    @font-face {
+      font-family: 'Font Awesome 5 Free';
+      font-style: normal;
+      font-weight: 900;
+      src: url("../webfonts/fa-solid-900.eot");
+      src: url("../webfonts/fa-solid-900.eot?#iefix") format("embedded-opentype"), url("../webfonts/fa-solid-900.woff2") format("woff2"), url("../webfonts/fa-solid-900.woff") format("woff"), url("../webfonts/fa-solid-900.ttf") format("truetype"), url("../webfonts/fa-solid-900.svg#fontawesome") format("svg"); }
+
+    .fa,
+    .fas {
+      font-family: 'Font Awesome 5 Free';
+      font-weight: 900; }
+
+    .fa-times-circle:before {
+      content: "\f057"; }
+
+    .fa-check-circle:before {
+      content: "\f058"; }
+
+    .fa-list-alt:before {
+      content: "\f022"; }
 
     #btpBtn {
       background-color: #50A1CB; /* button color */
@@ -91,6 +126,30 @@
 
   }
 
+  .result {
+    display: block;
+    text-align: center;
+    padding-top: 5%;
+  }
+
+  .title-icon {
+    width: 3%;
+    /*margin-right: -10px;*/
+    display: inline-block;
+  }
+
+  .review {
+    font-family: monospace;
+    font-size: 2em;
+  }
+
+  .plot-name {
+    font-family: monospace; 
+    font-size: 2em;
+    text-align: left;
+    margin: 0;
+    padding-bottom: 2%;
+  }
 
   a {
     text-decoration: none;
@@ -140,9 +199,14 @@
     margin: 0 auto;
   }
 
-  .sec-1 {
+  .sec-1, .sec-2, .sec-3 {
     /*height: 80%;*/
-    padding: 100px;
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+
+  #basic-table, #label-dis-table, #label-dis-barchart {
+    padding-bottom: 10%;
   }
 
   .label-dis-table {
@@ -180,40 +244,30 @@
 
   td.a:hover { background-color:#ccc; }
 
-  .inner {
+  #label-dis-barchart {
     /*width: 80%;*/
     text-align: center;
 
   }
   
 
-.ac-label, .ac-sub-label, .ac-row {
+.ac-row, .ac-label {
   /**/
   position: relative;
   padding: .5em 1em;
   display: block;
   cursor: pointer;
   transition: background-color .15s ease-in-out;
-}
-
-.ac-label {
-  font-size: 18px;
-}
-
-.ac-sub-label {
-  font-size: 18px;
-}
-
-.ac-row, .ac-sub-text {
   font-size: 15px;
-  color: white;
+  color: black;
   font-weight: 700;
   padding-left: 12%;
+  padding: .5em 2em;
+  background: #ccc;
 }
 
 
-.ac-label:after, .ac-input:checked + .ac-label:after,
-.ac-sub-label:after, .ac-input:checked + .ac-sub-label:after {
+.ac-label:after, .ac-input:checked + .ac-label:after {
   position: absolute;
   display: block;
   right: 0;
@@ -226,32 +280,15 @@
   transition: background-color .15s ease-in-out;
 }
 
-.ac-label, .ac-label:after{
-  background-color: #ccc;
+
+.ac-row:hover, .ac-label:hover {
+  background-color: #444;
+  color: white;
 }
 
-.ac-sub-label,.ac-sub-label:after{
-  background-color: #999;
-}
-
-.ac-input:checked ~ .ac-sub-text, .ac-row {
-  padding: .5em 2em;
-  background: #444;
-  /*border-bottom: 1px dashed #353535*/; 
-}
-
-.ac-label:hover, .ac-label:hover:after{
-  background-color: #eee;
-}
-
-.ac-sub-label:hover, .ac-sub-label:hover:after, .ac-row:hover {
-  background-color: #ccc;
-}
-
-.ac-input:checked ~ .ac-sub-text:hover {
-  padding: .5em 2em;
-  background: #999;
-  /*border-bottom: 1px dashed #353535*/; 
+.ac-input:checked + .ac-label {
+  background-color: #444;
+  color: white; 
 }
 
 .ac-input:checked + .ac-label:after {
@@ -259,53 +296,29 @@
 }
 
 
-.ac-label:after, .ac-input:checked + .ac-label:after {
+.ac-label:after{
   content: "\25BC";
-}
-
-.ac-sub-label:after, .ac-input:checked + .ac-sub-label:after {
-  content: "+";
-}
-
-
-.ac-input:checked + .ac-sub-label:after {
-  content: "-";
 }
 
 .ac-input {
   display: none;
 }
 
-.ac-text, .ac-sub-text {
+.ac-text {
   opacity: 0;
   height: 0;
   transition: opacity .5s ease-in-out;
   overflow: hidden;
 }
 
-.ac-sub-text a {
-  color: #eee;
-}
-
-.ac-sub-text a:hover, .ac-row:hover {
-  color: black;
-}
-
-.ac-input:checked ~ .ac-text, .ac-sub .ac-input:checked ~ .ac-sub-text {
+.ac-input:checked ~ .ac-text{
   opacity: 1;
   height: auto;
 }
 
-.ac-sub .ac-sub-label {
-  padding: .5em 2em;
-  margin-bottom: 0;
+.ac-input:checked ~ .ac-text > .ac-sub > .ac-row{
+  background-color: #999;
 }
-
-
-.ac-sub .ac-input + label:after {
-  left: 0;
-}
-
 .chart {
   margin-top: 30%;
 }
@@ -354,22 +367,26 @@
   background-color: #555;
 }
 
-#gen-eval {
+.gen-eval-table, .basic-table{
   border-collapse: collapse;
-  width: 60%;
+  width: 40%;
+  margin: 0;
 }
 
-#gen-eval td, #gen-eval th {
+.gen-eval-table td, .gen-eval-table th, .basic-table td, .basic-table th {
     border: 1px solid #999;
     padding: 8px;
 }
 
-#gen-eval tr:nth-child(odd){background-color: #ccc;}
+.gen-eval-table tr:nth-child(odd), .basic-table tr:nth-child(odd) {
+  background-color: #ccc;
+}
 
-#gen-eval th {
+.gen-eval-table th, .basic-table th {
     padding-top: 12px;
     padding-bottom: 12px;
 }
+
 </style>
 
 </head>
@@ -389,29 +406,97 @@
     <h2 style="color: #800000; text-align: center">Summary</h2>
 
     <div class="ac">
-      
+      <span class="ac-row" onclick="link('#basic-stats')">
+        Basic Statistics
+      </span>
+    </div>
+
+    <div class="ac">
+      <span class="ac-row" onclick="link('#label-dis-table')">
+        Label Distrbution Table
+      </span>
+    </div>
+
+    <div class="ac">
+      <span class="ac-row" onclick="link('#label-dis-barchart')">
+        Label Distribution Barchart
+      </span>
+    </div>
+
+
+    <div class="ac">
       <input class="ac-input" id="ac-1" name="ac-1" type="checkbox" />
-      <label class="ac-label" for="ac-1">I. Data Quality Assessment</label>
+      <label class="ac-label" for="ac-1">BWA - MEM</label>
       <article class="ac-text">
         <div class="ac-sub">
-          <span class="ac-row" onclick="link('#basic-table')">
-            Basic Stats
+          <span class="ac-row" onclick="link('#bwa-mem-1')">
+            Mismatch ratio of S reads
+          </span>
+        </div>
+
+        <div class="ac-sub">
+          <span class="ac-row" onclick="link('#bwa-mem-2')">
+            Clip ratio of C reads
+          </span>
+        </div>
+        <div class="ac-sub">
+          <span class="ac-row" onclick="link('#bwa-mem-3')">
+            Alignment score of P reads
+          </span>
+        </div>
+        <div class="ac-sub">
+          <span class="ac-row" onclick="link('#bwa-mem-4')">
+            Alignment score of S reads
+          </span>
+        </div>
+        <div class="ac-sub">
+          <span class="ac-row" onclick="link('#bwa-mem-5')">
+            Alignment score of C reads
           </span>
         </div>
       </article>
+    </div>
 
+    <div class="ac">
+      <input class="ac-input" id="ac-2" name="ac-2" type="checkbox" />
+      <label class="ac-label" for="ac-2">Bowtie2 - local</label>
       <article class="ac-text">
         <div class="ac-sub">
-          <span class="ac-row" onclick="link('#label-dis-table')">
-            Label Distrbution Table
+          <span class="ac-row" onclick="link('#bowtie2-local-1')">
+            Mismatch ratio of S reads
+          </span>
+        </div>
+
+        <div class="ac-sub">
+          <span class="ac-row" onclick="link('#bowtie2-local-2')">
+            Clip ratio of C reads
+          </span>
+        </div>
+        <div class="ac-sub">
+          <span class="ac-row" onclick="link('#bowtie2-local-3')">
+            Alignment score of P reads
+          </span>
+        </div>
+        <div class="ac-sub">
+          <span class="ac-row" onclick="link('#bowtie2-local-4')">
+            Alignment score of S reads
+          </span>
+        </div>
+        <div class="ac-sub">
+          <span class="ac-row" onclick="link('#bowtie2-local-5')">
+            Alignment score of C reads
           </span>
         </div>
       </article>
+    </div>
 
+    <div class="ac">
+      <input class="ac-input" id="ac-3" name="ac-3" type="checkbox" />
+      <label class="ac-label" for="ac-3">BWA - endtoend</label>
       <article class="ac-text">
         <div class="ac-sub">
-          <span class="ac-row" onclick="link('#label-dis-barchart')">
-            Label Distribution Barchart
+          <span class="ac-row" onclick="link('#bwa-endtoend-1')">
+            Alignment score of S reads
           </span>
         </div>
       </article>
@@ -419,99 +504,31 @@
 
     <div class="ac">
       <input class="ac-input" id="ac-4" name="ac-4" type="checkbox" />
-      <label class="ac-label" for="ac-4">II. Alignment information</label>
+      <label class="ac-label" for="ac-4">Bowtie2 - local</label>
       <article class="ac-text">
         <div class="ac-sub">
-          <input class="ac-input" id="ac-5" name="ac-5" type="checkbox" />
-          <label class="ac-sub-label" for="ac-5"> 
-              BWA - MEM
-          </label>
-          <article class="ac-sub-text">
-            <a href="#bwa-mem-1">Mismatch ratio of S reads</a>
-          </article>
-          <article class="ac-sub-text">
-            <a href="#bwa-mem-2">Clip ratio of C reads</a>
-          </article>
-          <article class="ac-sub-text">
-            <a href="#bwa-mem-3">Alignment score of P reads</a>
-          </article>
-          <article class="ac-sub-text">
-            <a href="#bwa-mem-4">Alignment score of S reads</a>
-          </article>
-          <article class="ac-sub-text">
-            <a href="#bwa-mem-5">Alignment score of C reads</a>
-          </article>
+          <span class="ac-row" onclick="link('#bowtie2-endtoend-1')">
+            Mismatch ratio of S reads
+          </span>
         </div>
-      </article>
-
-      <article class="ac-text">
         <div class="ac-sub">
-          <input class="ac-input" id="ac-6" name="ac-6" type="checkbox" />
-          <label class="ac-sub-label" for="ac-6"> 
-              Bowtie2 - local
-          </label>
-          <article class="ac-sub-text">
-            <a href="#bowtie2-local-1">Mismatch ratio of S reads</a>
-          </article>
-          <article class="ac-sub-text">
-            <a href="#bowtie2-local-2">Clip ratio of C reads</a>
-          </article>
-          <article class="ac-sub-text">
-            <a href="#bowtie2-local-3">Alignment score of P reads</a>
-          </article>
-          <article class="ac-sub-text">
-            <a href="#bowtie2-local-4">Alignment score of S reads</a>
-          </article>
-          <article class="ac-sub-text">
-            <a href="#bowtie2-local-5">Alignment score of C reads</a>
-          </article>
+          <span class="ac-row" onclick="link('#bowtie2-endtoend-2')">
+            Alignment score of P reads
+          </span>
         </div>
-      </article>
-
-      <article class="ac-text">
         <div class="ac-sub">
-          <input class="ac-input" id="ac-7" name="ac-7" type="checkbox" />
-          <label class="ac-sub-label" for="ac-7"> 
-              BWA - endtoend
-          </label>
-          <article class="ac-sub-text">
-            <a href="#bwa-endtoend-1">Mismatch ratio of S reads</a>
-          </article>
-        </div>
-      </article>
-
-      <article class="ac-text">
-        <div class="ac-sub">
-          <input class="ac-input" id="ac-8" name="ac-8" type="checkbox" />
-          <label class="ac-sub-label" for="ac-8"> 
-              Bowtie2 - endtoend
-          </label>
-          <article class="ac-sub-text">
-            <a href="#bowtie2-endtoend-1">Mismatch ratio of S reads</a>
-          </article>
-          <article class="ac-sub-text">
-            <a href="#bowtie2-endtoend-2">Alignment score of P reads</a>
-          </article>
-          <article class="ac-sub-text">
-            <a href="#bowtie2-endtoend-3">Alignment score of S reads</a>
-          </article>
+          <span class="ac-row" onclick="link('#bowtie2-endtoend-3')">
+            Alignment score of S reads
+          </span>
         </div>
       </article>
     </div>
 
     <div class="ac">
-      <input class="ac-input" id="ac-9" name="ac-9" type="checkbox" />
-      <label class="ac-label" for="ac-9">III. Genome Evaluation</label>
-      <article class="ac-text">
-        <div class="ac-sub">
-          <span class="ac-row" onclick="link('#gen-eval')">
-            Genome Table
-          </span>
-        </div>
-      </article>
-      
+      <span class="ac-row" onclick="link('#gen-eval')">
+        Assembly Statistics
+      </span>
     </div>
-    <!--/ac-->
 
     <div class="chart">
       <table class="label-des-table">
@@ -553,78 +570,104 @@
   
   <div class="main" id="main" onscroll=scrollFunction()>
     <button onclick="topFunction()" id="btpBtn" title="Go to top"><i class="up"></i>Top</button>
+    <span class="result">
+      <h3 class="review" style="display:inline-block"></h3>
+    </span>
     <div class="sec-1">
-      <table class="label-dis-table" id="label-dis-table">
-        <tr>
-          <th colspan="2"><bold>Label Distribution Table</bold></th>
-          <th>BWA<br>MEM</th>
-          <th>Bowtie2<br>local</th>
-          <th>BWA<br>endtoend</th>
-          <th>Bowtie2<br>endtoend</th>
-        </tr>
-        <tr>
-          <td rowspan="4" width=15%>Uniquely-mapped Reads</td>
-          <td><div class="label"><span class="label-icon">P</span><img src="icons/P.png" class="icon" /></div></td>
-          <td id = "P1" class="value_col a" onclick="link('#bwa-mem-3')"></td>
-          <td id = "P2" class="value_col a" onclick="link('#bowtie2-local-3')"></td>
-          <td id = "P3" class = "value_col" ></td>
-          <td id = "P4" class="value_col a" onclick="link('#bowtie2-endtoend-2')"></td>
-        </tr>
-        <tr>
-          <td><div class="label"><span class="label-icon">S</span><img src="icons/S.png" class="icon" /></div></td>
-          <td id = "S1" class="value_col a" onclick="link('#bwa-mem-1')"></td>
-          <td id = "S2" class="value_col a" onclick="link('#bowtie2-local-1')"></td>
-          <td id = "S3" class="value_col a" onclick="link('#bwa-endtoend-1')"></td>
-          <td id = "S4" class="value_col a" onclick="link('#bowtie2-endtoend-1')"></td>
-        </tr>
-        <tr>
-          <td><div class="label"><span class="label-icon">C</span><img src="icons/C.png" class="icon" /></div></td>
-          <td id="C1" class="value_col a" onclick="link('#bwa-mem-2')"></td>
-          <td id = "C2" class = "value_col a" onclick="link('#bowtie2-local-2')"></td>
-          <td id = "C3" class = "value_col"></td>
-          <td id = "C4" class = "value_col"></td>
-        </tr>
-        <tr>
-          <td><div class="label"><span class="label-icon">O</span><img src="icons/O.png" class="icon" /></div></td>
-          <td id = "O1" class = "value_col"></td>
-          <td id = "O2" class = "value_col"></td>
-          <td id = "O3" class = "value_col"></td>
-          <td id = "O4" class = "value_col"></td>
-        </tr>
-        <tr>
-          <td colspan="2"><div class="label"><span class="label-icon">M</span><img src="icons/M.png" class="icon" /></div></td>
-          <td id = "M1" class = "value_col"></td>
-          <td id = "M2" class = "value_col"></td>
-          <td id = "M3" class = "value_col"></td>
-          <td id = "M4" class = "value_col"></td>
-        </tr>
-        <tr>
-          <td colspan="2"><div class="label"><span class="label-icon">F</span><img src="icons/F.png" class="icon" /></div></td>
-          <td id = "F1" class = "value_col"></td>
-          <td id = "F2" class = "value_col"></td>
-          <td id = "F3" class = "value_col"></td>
-          <td id = "F4" class = "value_col"></td>
-        </tr>
-        <tr>
-          <td colspan="2"><div class="label"><span class="label-icon">N</span><img src="icons/N.png" class="icon" /></div></td>
-          <td id = "N1" class = "value_col"></td>
-          <td id = "N2" class = "value_col"></td>
-          <td id = "N3" class = "value_col"></td>
-          <td id = "N4" class = "value_col"></td>
-        </tr>
-      </table>
+
+      <div id="basic-table">
+        <h2 class="plot-name">
+          Basic Statistics
+        </h2>
+        <table class="basic-table">
+        </table>
+      </div>
+
+      <div id="label-dis-table">
+        <h2 class="plot-name">
+          Label Distribution Table
+        </h2>
+        <table class="label-dis-table">
+          <tr>
+            <th colspan="2"><bold>Label Distribution Table</bold></th>
+            <th>BWA<br>MEM</th>
+            <th>Bowtie2<br>local</th>
+            <th>BWA<br>endtoend</th>
+            <th>Bowtie2<br>endtoend</th>
+          </tr>
+          <tr>
+            <td rowspan="4" width=15%>Uniquely-mapped Reads</td>
+            <td><div class="label"><span class="label-icon">P</span><img src="icons/P.png" class="icon" /></div></td>
+            <td id = "P1" class="value_col a" onclick="link('#bwa-mem-3')"></td>
+            <td id = "P2" class="value_col a" onclick="link('#bowtie2-local-3')"></td>
+            <td id = "P3" class = "value_col" ></td>
+            <td id = "P4" class="value_col a" onclick="link('#bowtie2-endtoend-2')"></td>
+          </tr>
+          <tr>
+            <td><div class="label"><span class="label-icon">S</span><img src="icons/S.png" class="icon" /></div></td>
+            <td id = "S1" class="value_col a" onclick="link('#bwa-mem-1')"></td>
+            <td id = "S2" class="value_col a" onclick="link('#bowtie2-local-1')"></td>
+            <td id = "S3" class="value_col a" onclick="link('#bwa-endtoend-1')"></td>
+            <td id = "S4" class="value_col a" onclick="link('#bowtie2-endtoend-1')"></td>
+          </tr>
+          <tr>
+            <td><div class="label"><span class="label-icon">C</span><img src="icons/C.png" class="icon" /></div></td>
+            <td id="C1" class="value_col a" onclick="link('#bwa-mem-2')"></td>
+            <td id = "C2" class = "value_col a" onclick="link('#bowtie2-local-2')"></td>
+            <td id = "C3" class = "value_col"></td>
+            <td id = "C4" class = "value_col"></td>
+          </tr>
+          <tr>
+            <td><div class="label"><span class="label-icon">O</span><img src="icons/O.png" class="icon" /></div></td>
+            <td id = "O1" class = "value_col"></td>
+            <td id = "O2" class = "value_col"></td>
+            <td id = "O3" class = "value_col"></td>
+            <td id = "O4" class = "value_col"></td>
+          </tr>
+          <tr>
+            <td colspan="2"><div class="label"><span class="label-icon">M</span><img src="icons/M.png" class="icon" /></div></td>
+            <td id = "M1" class = "value_col"></td>
+            <td id = "M2" class = "value_col"></td>
+            <td id = "M3" class = "value_col"></td>
+            <td id = "M4" class = "value_col"></td>
+          </tr>
+          <tr>
+            <td colspan="2"><div class="label"><span class="label-icon">F</span><img src="icons/F.png" class="icon" /></div></td>
+            <td id = "F1" class = "value_col"></td>
+            <td id = "F2" class = "value_col"></td>
+            <td id = "F3" class = "value_col"></td>
+            <td id = "F4" class = "value_col"></td>
+          </tr>
+          <tr>
+            <td colspan="2"><div class="label"><span class="label-icon">N</span><img src="icons/N.png" class="icon" /></div></td>
+            <td id = "N1" class = "value_col"></td>
+            <td id = "N2" class = "value_col"></td>
+            <td id = "N3" class = "value_col"></td>
+            <td id = "N4" class = "value_col"></td>
+          </tr>
+        </table>
+      </div>
+      
+      <div id="label-dis-barchart">
+        <h2 class="plot-name">
+          Label Distribution Barchart
+        </h2>
+      </div>
     </div>
-    
+
     <div class="sec-2">
     </div>
 
     <div class="sec-3">
-      <table id="gen-eval">
-        <tr>
-          <th>Genome stats</th>
-          <th>Value</th>
-        </tr>
-      </table>
+      <div id="gen-eval-table">
+        <h2 class="plot-name">
+          Assembly Statistics
+        </h2>
+        <table class="gen-eval-table">
+          <tr>
+          </tr>
+        </table>
+      </div>
     </div>
   </div>
 </body>

@@ -12,8 +12,9 @@ import csv
 
 colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
 labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N']
-crt_thre = 0.3
-N_thre = 0.1
+THRE = 0.3
+N_THRE = 0.1
+CRITERIA = 0.2
 
 
 def save_to_csv(stats, src_dir, aln_tool_list):
@@ -29,10 +30,10 @@ def save_to_csv(stats, src_dir, aln_tool_list):
 			cnt += 1
 
 
-def fill_in_table(stats, section, soup, template_fpath):
+def fill_in_label(stats, soup, template_fpath):
 	label_list = ['P', 'S', 'C', 'O', 'M', 'F', 'N']
 	icon_dirpath = "{}/icons".format(os.path.dirname(template_fpath))
-	label_div = section.findAll('div', {"class": 'label'})
+	label_div = soup.findAll('div', {"class": 'label'})
 
 	for i in range(len(label_div)):
 		#remove original img tag
@@ -44,37 +45,72 @@ def fill_in_table(stats, section, soup, template_fpath):
 		img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri), **{'class': 'icon'})
 		label_div[i].append(img_src)
 
+	label_dis_table = soup.find('table', class_="label-dis-table")
 	for i in range(len(stats)):
 		for j in range(len(stats[0])):
-			cell = section.find('td', id='{0}{1}'.format(labels[i], j+1))
+			cell = label_dis_table.find('td', id='{0}{1}'.format(labels[i], j+1))
 			cell.string = stats[i][j]
 
 
-def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distribution, gen_stats):
+def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distribution, basic_stats, gen_stats):
 	"""concat all figures into report.html by inserting figures into template.html"""
-
 	src_dir = os.path.dirname(all_html_fpath)
+	icon_dirpath = "{}/icons".format(os.path.dirname(template_fpath))
 	with open(template_fpath) as file:
 		soup = BeautifulSoup(file, "lxml")
-		sec_one = soup.find('div', {"class": 'sec-1'})
+		main = soup.find('div', {"class": 'main'})
+		
+		#Overall review depends on avg. poor ratio
+		poor_ratio = float(basic_stats[3][1].strip('%'))/100
+		if poor_ratio < CRITERIA:
+			span_class = ["result"]
+			review = "Percentage of poor quality sequencing reads: {:.1%}".format(poor_ratio)
+			icon_fpath = '{}/check.png'.format(icon_dirpath)
+
+		else:
+			span_class = ["result", "far", "fa-times-circle"]
+			review = "Percentage of poor quality sequencing reads: {:.1%}".format(poor_ratio)
+			icon_fpath = '{}/cross.png'.format(icon_dirpath)
+
+		result = main.find('span', class_="result")
+		data_uri = base64.b64encode(open(icon_fpath, 'rb').read()).decode('utf-8').replace('\n', '')
+		img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri), **{'class': "title-icon"})
+		result.insert(0, img_src)
+		result.h3.string = review
 		
 		#section I
+		#set up basic sequence stats table
+		basic_table = soup.find('table', class_="basic-table")
+		for i in range(len(basic_stats)):
+			new_tr = soup.new_tag('tr')
+			stat, value = soup.new_tag('td'), soup.new_tag('td')
+			stat.string = basic_stats[i][0]
+			value.string = basic_stats[i][1]
+			new_tr.append(stat)
+			new_tr.append(value)
+			basic_table.append(new_tr)
+
 		#set up label dis. table
-		fill_in_table(flatten(label_distribution, aln_tool_list), sec_one, soup, template_fpath)
+		fill_in_label(flatten(label_distribution, aln_tool_list), soup, template_fpath)
 
 		#plot label dis bar first
-		
 		img_fpath = '{}/label_dis/bar.png'.format(src_dir)
 		data_uri = base64.b64encode(open(img_fpath, 'rb').read()).decode('utf-8').replace('\n', '')
-		new_div = soup.new_tag("div", id="label-dis-barchart", **{'class': 'inner'})
+		label_dis_bar = soup.find("div", id="label-dis-barchart")
 		img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri))
-		new_div.append(img_src)
-		sec_one.append(new_div)
+		label_dis_bar.append(img_src)
 
 		#section II
 		#the rest of distribution graph for each aligner
+		i = 0
+		title_list = ['BWA - MEM', 'Bowtie2 - local', 'BWA - endtoend', 'Bowtie2 - endtoend']
 		sec_two = soup.find('div', {"class": 'sec-2'})
 		for aln_tool in aln_tool_list:
+			title = soup.new_tag("h2", **{'class': 'plot-name'})
+			title.string = title_list[i]
+			sec_two.append(title)
+			i += 1
+
 			cnt = 1
 			files = glob.glob('{0}/{1}/imgs/*.png'.format(src_dir, aln_tool))
 			files.sort(key=os.path.getmtime)
@@ -89,7 +125,7 @@ def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distributi
 		#section III
 		#genome evaluation table
 		#sec_three = soup.find('div', {"class": 'sec-3'})
-		gen_eval_table = soup.find('table', id="gen-eval")
+		gen_eval_table = soup.find('table', class_="gen-eval-table")
 		for i in range(len(gen_stats)):
 			new_tr = soup.new_tag('tr')
 			stat, value = soup.new_tag('td'), soup.new_tag('td')
@@ -183,7 +219,7 @@ def get_genome_eval_stat(src_dir):
 				value = int(value)
 				if 'Kbp' in stats_name[i]:
 					value = value / 1000
-				value = '{:,}'.format(round(value))
+				value = '{:,}'.format(round(value, 1))
 			rows.append([stats_name[i], value])
 
 	return rows
@@ -191,7 +227,7 @@ def get_genome_eval_stat(src_dir):
 
 def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, xlabel='', label='', cigar_list={}):
 	hist, bins = np.histogram(data, bins=20)
-	
+
 	fig = plt.figure(figsize=(15, 10))
 	#gs = gridspec.GridSpec(1, 2, width_ratios=[4, 1]) 
 
@@ -203,8 +239,8 @@ def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, 
 	#add legend
 	num_read = np.sum(label_array == label)
 	if 'Alignment Score' not in xlabel:
-		ax.axvline(crt_thre, color='red', zorder=20)
-		ratio_good = np.sum(data < crt_thre)/num_read
+		ax.axvline(THRE, color='red', zorder=20)
+		ratio_good = np.sum(data < THRE) / num_read
 		ratio_bad = 1 - ratio_good
 		ax.plot(1, 1, label='Below threshold (eligible): {:.1%}'.format(ratio_good), marker='', ls='')
 		ax.plot(1, 1, label='Above threshold (poor): {:.1%}'.format(ratio_bad), marker='', ls='')
@@ -212,9 +248,9 @@ def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, 
 		#zoom in the graph if necessary
 		if np.max(data) < 0.5:
 			ax.set_xlim(0, 0.5)
-			ax.text(crt_thre*2, 0.5, 'threshold', transform=ax.transAxes)
+			ax.text(THRE*2, 0.5, 'threshold', transform=ax.transAxes)
 		else:
-			ax.text(crt_thre, 0.5, 'threshold', transform=ax.transAxes)
+			ax.text(THRE, 0.5, 'threshold', transform=ax.transAxes)
 	
 	label_dis = num_read / read_size
 	ax.plot(1, 1, label='No. of {0} reads: {1} ({2:.1%})'.format(label, num_read, label_dis), marker='', ls='')
@@ -230,7 +266,7 @@ def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, 
 	plt.close()
 
 
-def draw_bar_bi(ax, field_list, read_size, idx, label='', thre=crt_thre):
+def draw_bar_bi(ax, field_list, read_size, idx, label='', thre=THRE):
 	upper_cnt, lower_cnt = 0, 0
 	for field in field_list:
 		if field < thre:
@@ -304,7 +340,7 @@ def do_label_dis_bar(ax, align_array, aln_tool, label_array, crt_label=''):
 
 	#N
 	n_list = do_N(align_array, label_array)
-	lower_cnt = draw_bar_bi(ax, n_list, read_size, idx, label='N', thre=N_thre)
+	lower_cnt = draw_bar_bi(ax, n_list, read_size, idx, label='N', thre=N_THRE)
 	below_cnt += lower_cnt
 	idx += 1
 
@@ -321,7 +357,7 @@ def do_label_dis_bar(ax, align_array, aln_tool, label_array, crt_label=''):
 	ax.set_title('{}'.format(aln_tool))
 
 	#record barplot input for future use
-	return {'P': None, 'S': nm_list, 'C': cr_list, 'O': o_list, 'M': None, 'F': None, 'N': n_list}
+	return {'P': None, 'S': nm_list, 'C': cr_list, 'O': o_list, 'M': None, 'F': None, 'N': n_list}, below_pct
 
 
 def add_text(ax, text, fontsize='x-large', weight='medium'):

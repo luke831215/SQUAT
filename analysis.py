@@ -84,11 +84,11 @@ def get_label_distribution(labels, aln_tool_list, src_dir, data, read_size):
 
 
 def get_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_figures):
-	cigar_dict = {}
+	cigar_dict, poor_pct_list = {}, np.zeros(len(aln_tool_list))
 	fig = plt.figure(figsize=(15, 10))
 	for i in range(len(aln_tool_list)):
 		ax = fig.add_subplot(len(aln_tool_list) / 2, 2, i+1)
-		cigar_dict[aln_tool_list[i]] = plotter.do_label_dis_bar(ax, align_info_dict[aln_tool_list[i]], aln_tool_list[i], label_dict[aln_tool_list[i]])
+		cigar_dict[aln_tool_list[i]], poor_pct_list[i] = plotter.do_label_dis_bar(ax, align_info_dict[aln_tool_list[i]], aln_tool_list[i], label_dict[aln_tool_list[i]])
 		#x-axis
 		ax.axhline(color='black')
 		
@@ -101,7 +101,8 @@ def get_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_
 	fig.savefig('{}/images/label_dis_bar.png'.format(src_dir))
 	plot_figures.append(fig)
 	plt.close()
-	return cigar_dict
+	avg_poor_pct = "{:.1%}".format(np.sum(poor_pct_list) / len(poor_pct_list))
+	return cigar_dict, avg_poor_pct
 
 
 def draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath, plot_figures):
@@ -120,7 +121,7 @@ def draw_genome_eval_table(stats, src_dir, plot_figures):
 	ax.axis('tight')
 	#draw table and savefig
 	ax.table(cellText=stats, cellLoc='center', loc='center', fontsize=15, bbox=(0.25, 0.25, 0.5, 0.5))
-	ax.set_title('Genome evaluation stats')
+	ax.set_title('Genome evaluation stats', y = 0.8)
 	#fig.tight_layout()
 	fig.savefig('{}/images/eval_table.png'.format(src_dir))
 	plot_figures.append(fig)
@@ -166,7 +167,59 @@ def get_label_dict(data, aln_tool_list, read_size):
 	
 	return label_dict
 
+
+def fastq_examine(fpath, read_size):
+	len_min, len_max = float("inf"), 0
+	gc_count, total_len = 0, 9
+	cnt = 0
+
+	with open(fpath) as infile:
+		while True:
+			tmp = infile.readline()
+			if tmp == '':
+				break
+			seq = infile.readline().strip()
+			seq_len = len(seq)
+			len_min = seq_len if len_min > seq_len else len_min
+			len_max = seq_len if len_max < seq_len else len_max
+			gc_count += seq.count('G') + seq.count('C')
+			total_len += seq_len
+			next(infile)
+			next(infile)
+			cnt += 1
+
+	seq_gc = '{:.0%}'.format(gc_count / total_len)
+	return len_min, len_max, seq_gc
+
+
 		
+def draw_basic_table(avg_poor_pct, fpath, src_dir, read_size, plot_figures):
+	seq_name = fpath.split('/')[-1]
+	len_min, len_max, seq_gc = fastq_examine(fpath, read_size)
+	stats = [
+			["File name", seq_name], ["No. of sequence", '{:,}'.format(read_size)],
+			["Sequence length", "{0} - {1}".format(len_min, len_max)],
+			["Avg. sequence% labeled as poor quality", avg_poor_pct],
+			["GC%", seq_gc]
+			]
+	fig = plt.figure(figsize=(15, 10))
+	ax = fig.add_subplot(111)
+	#hide axes
+	fig.patch.set_visible(False)
+	ax.axis('off')
+	ax.axis('tight')
+	#draw table and savefig
+	the_table = ax.table(cellText=stats, colWidths=[0.4, 0.2], cellLoc='center', loc='center', bbox=(0.25, 0.25, 0.5, 0.5))
+	the_table.set_fontsize(20)
+	ax.set_title('Sequence basic stats', y=0.8)
+	fig.set_tight_layout(True)
+	fig.savefig('{}/images/basic_stats.png'.format(src_dir))
+	#first page of the report
+	plot_figures.insert(0, fig)
+
+	return stats
+
+
 if __name__ == '__main__':
 	src_dir, ecv_fpath, data, read_size = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 
@@ -176,9 +229,6 @@ if __name__ == '__main__':
 	align_info_dict = {}
 	plot_figures = []
 	#table_figures = []
-
-
-	#plot basic stats of sequences
 
 	#label distribution table
 	label_dict = get_label_dict(data, aln_tool_list, read_size)
@@ -199,7 +249,7 @@ if __name__ == '__main__':
 			pickle.dump(align_info_dict[aln_tool], open(path, 'wb'))
 
 	#save label distribution bar and return cigar information
-	cigar_dict = get_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_figures)
+	cigar_dict, avg_poor_pct = get_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_figures)
 
 	#Plot distribution graph in terms of NM, CR, AS
 	for aln_tool in aln_tool_list:
@@ -212,16 +262,22 @@ if __name__ == '__main__':
 		align_array = align_info_dict[aln_tool]
 		draw_report_imgs(aln_tool, label_dict[aln_tool], align_array, src_dir, data, read_size, cigar_dict[aln_tool], plot_figures)
 
+	print('Plot genome evaluation table')
 	#draw genome evaluation table
 	genome_stats = plotter.get_genome_eval_stat(src_dir)
 	draw_genome_eval_table(genome_stats, src_dir, plot_figures)
 
+	print('Plot basic stats table')
+	#plot basic stats of sequences, put in the front of plot_figures
+	basic_stats = draw_basic_table(avg_poor_pct, ecv_fpath, src_dir, read_size, plot_figures)
+
 	#make report
+	print('Writing report')
 	all_pdf_fpath = src_dir+'/report.pdf'
 	all_html_fpath = src_dir+'/report.html'
 	template_fpath = os.path.dirname(sys.argv[0])+'/template/template.html'
 	plotter.save_to_pdf(all_pdf_fpath, plot_figures)
-	plotter.save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distribution, genome_stats)
+	plotter.save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distribution, basic_stats, genome_stats)
 
 	#output subset reads if specified
 	if len(sys.argv) == 6:
