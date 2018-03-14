@@ -13,10 +13,10 @@ fi
 
 #install bowtie2
 echo "install bowtie2-2.3.4"
-wget https://downloads.sourceforge.net/project/bowtie-bio/bowtie2/2.3.4/bowtie2-2.3.4-linux-x86_64.zip 
-unzip bowtie2-2.3.4-linux-x86_64.zip
-rm bowtie2-2.3.4-linux-x86_64.zip
-mv bowtie2-2.3.4-linux-x86_64 bowtie2
+wget https://downloads.sourceforge.net/project/bowtie-bio/bowtie2/2.3.4.1/bowtie2-2.3.4.1-linux-x86_64.zip
+unzip bowtie2-2.3.4.1-linux-x86_64.zip
+rm bowtie2-2.3.4.1-linux-x86_64.zip
+mv bowtie2-2.3.4.1-linux-x86_64 bowtie2
 
 #install bwa
 echo "install bwa-0.7.15"
