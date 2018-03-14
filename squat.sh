@@ -4,11 +4,13 @@ set -e
 usage()
 {
 	echo -e "SQUAT: Sequencing Quality Assessment Tool"
-	echo -e "Usage: $0 [-o <output_dir>] [-r <read_name>] [-i fastq_path] [-g <genome_path>]\n"
+	echo -e "Usage: $0 [-o <output_dir>] [-d <data_name>] [-i fastq_path] [-g <fasta_path>]\n"
 	echo "Optional args:"
 	echo "-t	--thread	<int>	Number of thread to use" 
-	echo "-k	--keep	Don't flush the sam file after alignment" 
-	echo "-s 	--subset 	<str>	return the subset of sequencing reads according to the labels (in capitals, e.g. PSCO)" 
+	echo "-k	--keep	Don't flush The sam file after alignment" 
+	echo "-s 	--subset 	<str>	Return the subset of sequencing reads according to the labels (in capitals, e.g. PSCO)" 
+	echo "-R	Path to the reference genome file for GAGE benchmark tool" 
+    echo "--gage    Activate gage mode, must specify reference genome (-R)" 
 }
 
 function to_abs	{
@@ -45,7 +47,7 @@ case $key in
     shift # past argument
     shift # past value
     ;;
-    -r)
+    -d)
     DATA="$2"
     shift # past argument
     shift # past value
@@ -70,10 +72,14 @@ case $key in
     shift # past argument
     shift # past value
     ;;
-    -g|--gage)
+    -R)
     GAGELOC="$( to_abs $2 )"
     shift # past argument
     shift # past value
+    ;;
+    --gage)
+    GAGE=YES
+    shift # past argument
     ;;
     *)    # unknown option
 	echo "Unknown option: "$1 >&2
@@ -113,21 +119,22 @@ bash ${EXECDIR}/libs/run_mapping.sh $EXECDIR $OUTDIR $DATA $READSIZE $REFLOC $EC
 
 #generate kmer info
 echo "generate kmer stats"
-bash ${EXECDIR}/libs/run_kcn.sh $OUTDIR/kcn_histo $DATA $ECVLOC
+bash ${EXECDIR}/libs/run_kcn.sh $OUTDIR/kcn_histo $DATA $
+
+
+#quast evaluation
+echo "Evaluate genome assemblies"
+if [[ -z "$GAGELOC" && -z "$GAGE" ]]; then
+	python ${EXECDIR}/quast/quast.py ${REFLOC} -o ${OUTDIR}/quast --min-contig 200 -t ${MAXPROC} 2>&1 > /dev/null
+else
+	python ${EXECDIR}/quast/quast.py ${REFLOC} -o ${OUTDIR}/quast --min-contig 200 -t ${MAXPROC} -R ${GAGELOC} --gage 2>&1 > /dev/null 
+fi
 
 #analysis modules
 echo "Generate reports"
 mkdir -p ${OUTDIR}/subset
 mkdir -p ${OUTDIR}/images
 python ${EXECDIR}/analysis.py ${OUTDIR} ${ECVLOC} ${DATA} ${READSIZE} ${SUBSET}
-
-#quast evaluation
-echo "Evaluate genome assemblies"
-if [[ -z "$GAGELOC" ]]; then
-	python ${EXECDIR}/libs/quast/quast.py ${REFLOC} -o ${OUTDIR}/quast --min-contig 200 -t ${MAXPROC} &> /dev/null
-else
-	python ${EXECDIR}/libs/quast/quast.py ${REFLOC} -o ${OUTDIR}/quast --min-contig 200 -t ${MAXPROC} -R ${GAGELOC} --gage &> /dev/null
-fi
 
 #flush sam files
 if [ "$KEEP_SAM" = "NO" ]; then
