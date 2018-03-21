@@ -4,6 +4,11 @@
   <script type="text/javascript"> </script>
   <link href="web-fonts-with-css/css/fontawesome-all.min.css" rel="stylesheet">
   <style>
+
+    body{
+      margin: 0;
+    }
+
     .fa,
     .fas,
     .far,
@@ -86,12 +91,11 @@
 
   div.summary {
   width: 18em;
-  position:fixed;
-  top: 3em;
-  margin:1em 0 0 0;
+  position: relative;
+  top: 5em;
   font-family: sans-serif;   
   left: 0;
-}
+  }
 
 
   div.main {
@@ -126,21 +130,28 @@
 
   }
 
-  .result {
-    display: block;
-    text-align: center;
-    padding-top: 5%;
-  }
-
   .title-icon {
     width: 3%;
     /*margin-right: -10px;*/
     display: inline-block;
   }
 
+  .data {
+    font-family: monospace;
+    font-size: 3em;
+    padding-top: 5%;
+    /*margin: 0;*/
+  }
+
   .review {
     font-family: monospace;
     font-size: 2em;
+  }
+
+  .result {
+    display: block;
+    text-align: center;
+    padding-bottom: 5%;
   }
 
   .plot-name {
@@ -160,17 +171,20 @@
   }
 
   #header_title {
-  display:inline-block;
-  float:left;
-  clear:left;
+    display:inline-block;
+    float:left;
+    clear:left;
+    margin: 0;
   }
-  #header_filename {
-  display:inline-block;
-  float:right;
-  clear:right;
-  font-size: 50%;
-  margin-right:2em;
-  text-align: right;
+
+  #time {
+    display:inline-block;
+    float:right;
+    clear:right;
+    margin: 0;
+    margin-right:2em;
+    text-align: right;
+    font-size: smaller;
   }
 
   img {
@@ -367,25 +381,27 @@
   background-color: #555;
 }
 
-.gen-eval-table, .basic-table{
-  border-collapse: collapse;
+.gen-eval-table, .seq-info{
   width: 40%;
   margin: 0;
+  display: inline-block;
 }
 
-.gen-eval-table td, .gen-eval-table th, .basic-table td, .basic-table th {
+.gen-eval-table td, .gen-eval-table th, .seq-info td, .seq-info th {
     border: 1px solid #999;
     padding: 8px;
 }
 
-.gen-eval-table tr:nth-child(odd), .basic-table tr:nth-child(odd) {
+.gen-eval-table tr:nth-child(odd), .seq-info tr:nth-child(odd) {
   background-color: #ccc;
 }
 
-.gen-eval-table th, .basic-table th {
+.gen-eval-table th, .seq-info th {
     padding-top: 12px;
     padding-bottom: 12px;
 }
+
+
 
 </style>
 
@@ -394,32 +410,32 @@
 <body>
 
   <div class="header">
-    <div id="header_title">
-      SQUAT Report
-    </div>
-    <div id="header_filename">
-      To be filled
-    </div>
+    <p id="header_title">
+        SQUAT Report
+    </p>
+    
+    <p id="time">
+    </p>
   </div>
 
   <div class="summary">
     <h2 style="color: #800000; text-align: center">Summary</h2>
 
     <div class="ac">
-      <span class="ac-row" onclick="link('#basic-stats')">
+      <span class="ac-row" onclick="link('#basic-table')">
         Basic Statistics
       </span>
     </div>
 
     <div class="ac">
       <span class="ac-row" onclick="link('#label-dis-table')">
-        Label Distrbution Table
+        Label Distrbution (Table)
       </span>
     </div>
 
     <div class="ac">
       <span class="ac-row" onclick="link('#label-dis-barchart')">
-        Label Distribution Barchart
+        Label Distribution (Barchart)
       </span>
     </div>
 
@@ -524,12 +540,6 @@
       </article>
     </div>
 
-    <div class="ac">
-      <span class="ac-row" onclick="link('#gen-eval')">
-        Assembly Statistics
-      </span>
-    </div>
-
     <div class="chart">
       <table class="label-des-table">
         <tr>
@@ -570,6 +580,7 @@
   
   <div class="main" id="main" onscroll=scrollFunction()>
     <button onclick="topFunction()" id="btpBtn" title="Go to top"><i class="up"></i>Top</button>
+    <h2 class="data" style="text-align: center"></h2>
     <span class="result">
       <h3 class="review" style="display:inline-block"></h3>
     </span>
@@ -579,7 +590,18 @@
         <h2 class="plot-name">
           Basic Statistics
         </h2>
-        <table class="basic-table">
+        <table class="seq-info">
+          <tr>
+            <th>Seqeuencing reads information</th>
+            <th>Value</th>
+          </tr>
+        </table>
+
+        <table class="gen-eval-table">
+          <tr>
+            <th>Reference sequence assembly </th>
+            <th>Value</th>
+          </tr>
         </table>
       </div>
 
@@ -589,7 +611,7 @@
         </h2>
         <table class="label-dis-table">
           <tr>
-            <th colspan="2"><bold>Label Distribution Table</bold></th>
+            <th colspan="2"></th>
             <th>BWA<br>MEM</th>
             <th>Bowtie2<br>local</th>
             <th>BWA<br>endtoend</th>
@@ -659,15 +681,7 @@
     </div>
 
     <div class="sec-3">
-      <div id="gen-eval-table">
-        <h2 class="plot-name">
-          Assembly Statistics
-        </h2>
-        <table class="gen-eval-table">
-          <tr>
-          </tr>
-        </table>
-      </div>
+      
     </div>
   </div>
 </body>
