@@ -50,34 +50,39 @@ MAXPROCESS=$7
 if [[ $8 != "bwaOnly" ]]; then
 
 	#bowtie2 - local alignment
+	#The log output of Bowtie is directed to stderr
 	echo 'bowtie2 - local alignment'
 	BOWTIEDIR=${OUTDIR}/bowtie2-local
 	BOWTIEDIR1=${BOWTIEDIR}
 	if [ -d ${BOWTIEDIR} ]; then
 		rm -rf ${BOWTIEDIR}
 	fi
-	mkdir -p ${BOWTIEDIR}/index
+	mkdir -p ${BOWTIEDIR}/index &> /dev/null
 	cd ${BOWTIEDIR};
-	ln -s ${ECVLOC} .
-	ln -s ${REFLOC} scaffolds.fasta
-	${SRCDIR}/bowtie2/bowtie2-build scaffolds.fasta index/${DATA} > build.log
-	${SRCDIR}/bowtie2/bowtie2 -p ${MAXPROCESS} --local -x index/${DATA} -U ${DATA}_ecv.fastq -S ${DATA}_ecv_all.sam -k 20 --omit-sec-seq --reorder > ${DATA}_ecv_all.log
-	bash ${SCRIPTDIR}/bowtie2_benchmark_v2.sh ${DATA}_ecv scaffolds auto ${SRCDIR} I
+	ln -s ${ECVLOC} ${DATA}.fastq 2>&1 > /dev/null
+	ln -s ${REFLOC} scaffolds.fasta 2>&1 > /dev/null
+	${SRCDIR}/bowtie2/bowtie2-build scaffolds.fasta index/${DATA} > build.log 2>&1
+	${SRCDIR}/bowtie2/bowtie2 -p ${MAXPROCESS} --local -x index/${DATA} -U ${ECVLOC} -S ${DATA}_ecv_all.sam -k 5 --omit-sec-seq --reorder 2> ${DATA}_ecv_all.log
+	bash ${SCRIPTDIR}/bowtie2_benchmark_v2.sh ${DATA} scaffolds auto ${SRCDIR} I 2>&1 > /dev/null
+	rm ${DATA}.fastq scaffolds.fasta &> /dev/null
 
 	#bowtie2 - end to end
+	#The log output of Bowtie is directed to stderr
 	echo 'bowtie2 - end to end'
 	BOWTIEDIR=${OUTDIR}/bowtie2-endtoend
 	BOWTIEDIR2=${BOWTIEDIR}
 	if [ -d  ${BOWTIEDIR} ]; then
 		rm -rf ${BOWTIEDIR}
 	fi
-	mkdir -p ${BOWTIEDIR}/index
+	mkdir -p ${BOWTIEDIR}/index &> /dev/null
 	cd ${BOWTIEDIR};
-	ln -s ${ECVLOC} .
-	ln -s ${REFLOC} scaffolds.fasta
-	${SRCDIR}/bowtie2/bowtie2-build scaffolds.fasta index/${DATA} > build.log
-	${SRCDIR}/bowtie2/bowtie2 -p ${MAXPROCESS} -x index/${DATA} -U ${DATA}_ecv.fastq -S ${DATA}_ecv_all.sam -k 20 --omit-sec-seq --reorder > ${DATA}_ecv_all.log
-	bash ${SCRIPTDIR}/bowtie2_benchmark_v2.sh ${DATA}_ecv scaffolds auto ${SRCDIR} I
+	ln -s ${ECVLOC} ${DATA}.fastq 2>&1 > /dev/null
+	ln -s ${REFLOC} scaffolds.fasta 2>&1 > /dev/null
+	${SRCDIR}/bowtie2/bowtie2-build scaffolds.fasta index/${DATA} > build.log 2>&1
+	${SRCDIR}/bowtie2/bowtie2 -p ${MAXPROCESS} -x index/${DATA} -U ${ECVLOC} -S ${DATA}_ecv_all.sam -k 5 --omit-sec-seq --reorder 2> ${DATA}_ecv_all.log
+	bash ${SCRIPTDIR}/bowtie2_benchmark_v2.sh ${DATA} scaffolds auto ${SRCDIR} I 2>&1 > /dev/null
+	rm ${DATA}.fastq scaffolds.fasta &> /dev/null
+
 
 fi
 
@@ -87,14 +92,15 @@ if [[ $8 != "bowtie2Only" ]]; then
 	BWADIR=${OUTDIR}/bwa-mem
 	BWADIR1=${BWADIR}
 	if [ -d  ${BWADIR} ]; then
-		rm -rf ${BWADIR}
+		rm -rf ${BWADIR} &> /dev/null
 	fi
-	mkdir -p ${BWADIR}/index
+	mkdir -p ${BWADIR}/index &> /dev/null
 	cd ${BWADIR};
-	ln -s ${ECVLOC} .
-	ln -s ${REFLOC} scaffolds.fasta
-	bash ${SCRIPTDIR}/bwa_mem_v1.sh ${DATA}_ecv scaffolds auto ${SRCDIR} P
-	
+	ln -s ${ECVLOC} ${DATA}.fastq 2>&1 > /dev/null
+	ln -s ${REFLOC} scaffolds.fasta 2>&1 > /dev/null
+	bash ${SCRIPTDIR}/bwa_mem_v1.sh ${DATA} scaffolds auto ${SRCDIR} P > /dev/null 2&>1
+	rm ${DATA}.fastq scaffolds.fasta &> /dev/null
+
 	#bwa-end to end
 	echo 'bwa - end to end'
 	BWADIR=${OUTDIR}/bwa-endtoend
@@ -102,10 +108,10 @@ if [[ $8 != "bowtie2Only" ]]; then
 	if [ -d  ${BWADIR} ]; then
 		rm -rf ${BWADIR}
 	fi
-	mkdir -p ${BWADIR}/index
+	mkdir -p ${BWADIR}/index &> /dev/null
 	cd ${BWADIR};
-	ln -s ${ECVLOC} .
-	ln -s ${REFLOC} scaffolds.fasta
-	bash ${SCRIPTDIR}/bwa_endtoend_v3.sh ${DATA}_ecv scaffolds auto ${SRCDIR} P
-
+	ln -s ${ECVLOC} ${DATA}.fastq 2>&1 > /dev/null
+	ln -s ${REFLOC} scaffolds.fasta 2>&1 > /dev/null
+	bash ${SCRIPTDIR}/bwa_endtoend_v3.sh ${DATA} scaffolds auto ${SRCDIR} P > /dev/null
+	rm ${DATA}.fastq scaffolds.fasta &> /dev/null
 fi

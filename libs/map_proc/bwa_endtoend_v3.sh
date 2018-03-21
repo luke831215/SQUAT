@@ -59,10 +59,10 @@ function do_build {
 	${BWAPATH}/bwa index ${REFGENOME}.fasta -p index/${REFGENOME} 2>&1 | tee ${LOGSDIR}/${DATANAME}_bwt
 
 	echo "[bwa] aln"
-	${BWAPATH}/bwa aln ${EDITDIST} -t ${MAXPROC} "index/${REFGENOME}" "${DATANAME}.fastq" -f "${WORKDIR}/${DATANAME}_all.sai" 2>&1 | tee "${LOGSDIR}/${DATANAME}_aln"
+	${BWAPATH}/bwa aln ${EDITDIST} -t ${MAXPROC} "index/${REFGENOME}" "${DATANAME}.fastq" -f "${WORKDIR}/${DATANAME}_ecv_all.sai" 2>&1 | tee "${LOGSDIR}/${DATANAME}_aln"
 
 	echo "[bwa] samse"
-	${BWAPATH}/bwa samse "index/${REFGENOME}" "${WORKDIR}/${DATANAME}_all.sai" "${DATANAME}.fastq" -f "${WORKDIR}/${DATANAME}_all.sam" 2>&1 | tee "${LOGSDIR}/${DATANAME}_samse"
+	${BWAPATH}/bwa samse "index/${REFGENOME}" "${WORKDIR}/${DATANAME}_ecv_all.sai" "${DATANAME}.fastq" -f "${WORKDIR}/${DATANAME}_ecv_all.sam" 2>&1 | tee "${LOGSDIR}/${DATANAME}_samse"
 }
 
 
@@ -74,7 +74,7 @@ function do_extract {
 	printf "%s" ""
 	# filter out flags of 256 (not primary alignment) and 2048 (supplementary alignment)
 	# it shall equal to the whole data
-	${SAMPATH}/samtools view -S -h -F 2304 "${WORKDIR}/${DATANAME}_all.sam" 2> /dev/null | \
+	${SAMPATH}/samtools view -S -h -F 2304 "${WORKDIR}/${DATANAME}_ecv_all.sam" 2> /dev/null | \
 	grep -v "^@" | \
 	awk -v FNAME="${DATADIR}/${DATANAME}.fastq" \
 		-v RNFNAME="${DATADIR}/${DATANAME}_rn.fastq" \
@@ -159,9 +159,10 @@ function do_ids {
 	touch "${IDLSDIR}/${RAW}_2_mappable_unique_subonly.ids" 
 	touch "${IDLSDIR}/${RAW}_3_mappable_unique_clips.ids" 
 	touch "${IDLSDIR}/${RAW}_4_mappable_unique_others.ids" 
+	touch "${IDLSDIR}/${RAW}_0_repeats.stock"
 	
 	printf "%s" ""
-	cat "${WORKDIR}/${DATANAME}_all.sam" | grep -v "^@" | \
+	cat "${WORKDIR}/${DATANAME}_ecv_all.sam" | grep -v "^@" | \
 	awk -v IDSET1="${IDLSDIR}/${RAW}_7_contain_N.ids" \
 	    -v IDSET2="${IDLSDIR}/${RAW}_6_unmappable.ids" \
 		-v IDSET3="${IDLSDIR}/${RAW}_5_mappable_multi.ids" \

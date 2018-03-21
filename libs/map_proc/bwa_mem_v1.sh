@@ -58,15 +58,15 @@ function do_build {
 	${BWAPATH}/bwa index ${REFGENOME}.fasta -p index/${REFGENOME} 2>&1 | tee ${LOGSDIR}/${DATANAME}_bwt
 
 	echo "[bwa] mem"
-	${BWAPATH}/bwa mem ${PARASET} -t ${MAXPROC} -a  index/${REFGENOME} "${DATANAME}.fastq" \
-	> "${WORKDIR}/${DATANAME}_all.sam" 2> >(tee "${LOGSDIR}/${DATANAME}_mem" >&2)
+	${BWAPATH}/bwa mem ${PARASET} -t ${MAXPROC} -a index/${REFGENOME} "${DATANAME}.fastq" \
+	> "${WORKDIR}/${DATANAME}_ecv_all.sam" 2> >(tee "${LOGSDIR}/${DATANAME}_mem" >&2) > /dev/null
 }
 
 function do_extract {
 	echo "[fastq and ans]"
 	# filter out flags of 256 (not primary alignment) and 2048 (supplementary alignment)
 	# it shall equal to the whole data
-	${SAMPATH}/samtools view -S -h -F 2304 "${WORKDIR}/${DATANAME}_all.sam" 2> /dev/null | \
+	${SAMPATH}/samtools view -S -h -F 2304 "${WORKDIR}/${DATANAME}_ecv_all.sam" 2> /dev/null | \
 	grep -v "^@" | \
 	awk -v FNAME="${DATADIR}/${DATANAME}.fastq" -v ANAME="${DATADIR}/${GSTD}.ans" '{
 		print "@"$1"\n"$10"\n+\n"$11 > FNAME
@@ -107,6 +107,8 @@ function do_ids {
 	LNDESC="\rextract (%s/3): %s processed"
 
 	printf "%s" ""
+
+	touch "${IDLSDIR}/${RAW}_7_contain_N.ids"
 	cat ${RAWFILE} | \
 	awk 'NR%4==1 {printf "%s\t", substr($0, 2)} NR%4==2 {printf "%s\n", $0}' | \
 	awk -v IDSET1="${IDLSDIR}/${RAW}_7_contain_N.ids" \
@@ -136,9 +138,10 @@ function do_ids {
 	touch "${IDLSDIR}/${RAW}_2_mappable_unique_subonly.ids" 
 	touch "${IDLSDIR}/${RAW}_3_mappable_unique_clips.ids" 
 	touch "${IDLSDIR}/${RAW}_4_mappable_unique_others.ids" 
+	touch "${IDLSDIR}/${RAW}_0_repeats.stock"
 	
 	printf "%s" ""
-	cat "${WORKDIR}/${DATANAME}_all.sam" | grep -v "^@" | \
+	cat "${WORKDIR}/${DATANAME}_ecv_all.sam" | grep -v "^@" | \
 	awk -v IDSET2="${IDLSDIR}/${RAW}_6_unmappable.ids" \
 		-v IDSET3="${IDLSDIR}/${RAW}_5_mappable_multi.ids" \
 		-v IDSET4="${IDLSDIR}/${RAW}_1_mappable_unique_noerror.ids" \

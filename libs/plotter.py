@@ -1,5 +1,6 @@
 import os
 import re
+import datetime
 import numpy as np
 import matplotlib.pyplot as plt 
 from matplotlib import gridspec
@@ -7,7 +8,6 @@ import glob
 import base64
 from matplotlib.backends.backend_pdf import PdfPages
 from bs4 import BeautifulSoup
-import xlsxwriter
 import csv
 
 colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
@@ -52,14 +52,20 @@ def fill_in_label(stats, soup, template_fpath):
 			cell.string = stats[i][j]
 
 
-def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distribution, basic_stats, gen_stats):
+def save_to_html(all_html_fpath, template_fpath, data, aln_tool_list, label_distribution, basic_stats, gen_stats):
 	"""concat all figures into report.html by inserting figures into template.html"""
-	src_dir = os.path.dirname(all_html_fpath)
+	src_dir = os.path.dirname(all_html_fpath) + '/' + data
 	icon_dirpath = "{}/icons".format(os.path.dirname(template_fpath))
 	with open(template_fpath) as file:
 		soup = BeautifulSoup(file, "lxml")
-		main = soup.find('div', {"class": 'main'})
+		time_sec = soup.find('p', id='time')
+		time_sec.string = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+
+		main = soup.find('div', **{"class": 'main'})
 		
+		data_sec = main.find('h2', **{"class": 'data'})
+		data_sec.string = data
+
 		#Overall review depends on avg. poor ratio
 		poor_ratio = float(basic_stats[3][1].strip('%'))/100
 		if poor_ratio < CRITERIA:
@@ -80,7 +86,8 @@ def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distributi
 		
 		#section I
 		#set up basic sequence stats table
-		basic_table = soup.find('table', class_="basic-table")
+		#seq information
+		seq_info = soup.find('table', class_="seq-info")
 		for i in range(len(basic_stats)):
 			new_tr = soup.new_tag('tr')
 			stat, value = soup.new_tag('td'), soup.new_tag('td')
@@ -88,13 +95,24 @@ def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distributi
 			value.string = basic_stats[i][1]
 			new_tr.append(stat)
 			new_tr.append(value)
-			basic_table.append(new_tr)
+			seq_info.append(new_tr)
+
+		#genome evaluation table
+		gen_eval_table = soup.find('table', class_="gen-eval-table")
+		for i in range(len(gen_stats)):
+			new_tr = soup.new_tag('tr')
+			stat, value = soup.new_tag('td'), soup.new_tag('td')
+			stat.string = gen_stats[i][0]
+			value.string = gen_stats[i][1]
+			new_tr.append(stat)
+			new_tr.append(value)
+			gen_eval_table.append(new_tr)
 
 		#set up label dis. table
 		fill_in_label(flatten(label_distribution, aln_tool_list), soup, template_fpath)
 
 		#plot label dis bar first
-		img_fpath = '{}/label_dis/bar.png'.format(src_dir)
+		img_fpath = '{}/images/bar.png'.format(src_dir)
 		data_uri = base64.b64encode(open(img_fpath, 'rb').read()).decode('utf-8').replace('\n', '')
 		label_dis_bar = soup.find("div", id="label-dis-barchart")
 		img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri))
@@ -121,19 +139,6 @@ def save_to_html(all_html_fpath, template_fpath, aln_tool_list, label_distributi
 				new_div.append(img_src)
 				sec_two.append(new_div)
 				cnt += 1
-
-		#section III
-		#genome evaluation table
-		#sec_three = soup.find('div', {"class": 'sec-3'})
-		gen_eval_table = soup.find('table', class_="gen-eval-table")
-		for i in range(len(gen_stats)):
-			new_tr = soup.new_tag('tr')
-			stat, value = soup.new_tag('td'), soup.new_tag('td')
-			stat.string = gen_stats[i][0]
-			value.string = gen_stats[i][1]
-			new_tr.append(stat)
-			new_tr.append(value)
-			gen_eval_table.append(new_tr)
 
 		#write report.html
 		with open(all_html_fpath, 'w') as w:
@@ -170,9 +175,9 @@ def get_genome_eval_stat(src_dir):
 	stats = {}
 	if GAGE:
 		stats_name = [
-				"# Scaffolds", "Scaffold NG50 (Kbp)", "# c. Scaffolds", "c. Scaffold Assembly Size (Mbp)",
-				"Max c. Scaffold (Kbp)", "Scaffold c. NG25 (Kbp)", "Scaffold c. NG50 (Kbp)", "Scaffold c. NG75 (Kbp)", 
-				"Scaffold LG80", "Scaffold LG90", "Scaffold LG99", "# N's per 100 kbp",
+				"# Contigs", "NG50 (Kbp)", "# c. Contigs", "c. Contigs Assembly Size (Mbp)",
+				"Max c. Contigs (Kbp)", "c. NG25 (Kbp)", "c. NG50 (Kbp)", "c. NG75 (Kbp)", 
+				"LG80", "LG90", "LG99", "# N's per 100 kbp",
 				"GC (%)", "Genome Fraction (%)", "Indels >= 5", "Inversions", "Relocation", "Translocation"
 		]
 		cor_stats_name = [
@@ -182,12 +187,12 @@ def get_genome_eval_stat(src_dir):
 		]
 	else:
 		stats_name = [
-			"# Scaffolds", "Max Scaffold (Kbp)", "Scaffold N25 (Kbp)", "Scaffold N50 (Kbp)", "Scaffold N75 (Kbp)",
-			"Scaffold L80", "Scaffold L90", "Scaffold L99", "# N's per 100 kbp", "GC (%)"
+			"# Contigs", "Max Contigs (Kbp)", "N25 (Kbp)", "N50 (Kbp)", "N75 (Kbp)",
+			"L80", "L90", "L99", "# N's per 100 kbp", "GC (%)"
 		]
 		cor_stats_name = [
-				"# contigs", "Largest contig", "N25", "N50", "N75", 
-				"L80", "L90", "L99", "# N's per 100 kbp", "GC (%)"
+			"# contigs", "Largest contig", "N25", "N50", "N75", 
+			"L80", "L90", "L99", "# N's per 100 kbp", "GC (%)"
 		]
 
 	#retrieve all stats in quast report
@@ -240,7 +245,7 @@ def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, 
 	num_read = np.sum(label_array == label)
 	if 'Alignment Score' not in xlabel:
 		ax.axvline(THRE, color='red', zorder=20)
-		ratio_good = np.sum(data < THRE) / num_read
+		ratio_good = np.sum(data < THRE) / num_read if not num_read else 0
 		ratio_bad = 1 - ratio_good
 		ax.plot(1, 1, label='Below threshold (eligible): {:.1%}'.format(ratio_good), marker='', ls='')
 		ax.plot(1, 1, label='Above threshold (poor): {:.1%}'.format(ratio_bad), marker='', ls='')
@@ -277,24 +282,33 @@ def draw_bar_bi(ax, field_list, read_size, idx, label='', thre=THRE):
 	#print(label, upper_cnt, lower_cnt)
 	value = round(upper_cnt / read_size * 100)
 	ax.bar(idx, value, color=colors[idx], align='center', width=0.5)#, label=label)#label=r'${}_+$'.format(label))
-	if value:
-		ax.text(idx, value+10, '{}'.format(value), ha='center')
+	if upper_cnt:
+		num = '~0' if value == 0 else value
+	else:
+		num = 0
+	ax.text(idx, value+10, '{}'.format(num), ha='center')
 	
 	value = round(-1 * lower_cnt / read_size * 100)	
 	ax.bar(idx, value, color=colors[idx], align='center', width=0.5)#label=r'${}_-$'.format(label))
-	if value:
-		ax.text(idx, value-10, '{}'.format(value), ha='center')
+	if lower_cnt:
+		num = '~0' if value == 0 else value
+	else:
+		num = 0
+	ax.text(idx, value-10, '{}'.format(num), ha='center')
 
 	return lower_cnt
 
 
 def draw_bar(ax, label_array, read_size, idx, label=''):
 	constant = -1 if label == 'F' else 1
-
-	value = round(int(constant * np.sum(label_array == label) / read_size * 100))
+	label_cnt = np.sum(label_array == label)
+	value = round(int(constant * label_cnt / read_size * 100))
 	ax.bar(idx, value, color=colors[idx], align='center', width=0.5)#, label=label)
-	if value:
-		ax.text(idx, value+10*constant, '{}'.format(value), ha='center')
+	if label_cnt:
+		num = '~0' if value == 0 else value
+	else:
+		num = 0
+	ax.text(idx, value+10*constant, '{}'.format(num), ha='center')
 
 
 def do_label_dis_bar(ax, align_array, aln_tool, label_array, crt_label=''):
@@ -428,10 +442,6 @@ def do_label_dis_table(label_dis, src_dir, aln_tool_list, plot_figures):
 	plt.close()
 
 	#save_to_csv(flatten(label_dis, aln_tool_list), src_dir, aln_tool_list)
-
-
-def do_basic_stats(plot_figures, ecv_fpath):
-	pass
 
 
 def do_nm(align_array, label_array):
