@@ -1,6 +1,6 @@
 # SQUAT manual
 
-version: 1.0
+## version: 1.0
 
 This manual introduces all the information you need to know about SQUAT.
 
@@ -10,4 +10,4 @@ SQUAT stands for **Sequencing QUality Assessment Tool**. It allows users to exam
 
 It will generate an html report as part of the analysis pipeline. The validity of the sequencing data will also be indicated in the report.
 
-Version 1.0 of SQUAT was released under GPLv2 on XXX.
+Version 1.0 of SQUAT was released under GPLv3 on XXX.	
