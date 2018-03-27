@@ -1,16 +1,17 @@
 #1/bin/bash
 
 if [ "$#" -lt "5" ]; then
-	echo "Using:" $0 "[DataName] [RefGenome] [PARASET] [SRCDIR] [(A)ll, (B)uild, (E)xtract, (I)ds, (P)ostAA, (S)tats, (U)pload, (W)ipe]"
+	echo "Using:" $0 "[DataName] [RefGenome] [PARASET] [SRCDIR] [(A)ll, (B)uild, (E)xtract, (I)ds, (P)ostAA, (S)tats, (U)pload, (W)ipe] [THREADS]"
 	exit
 fi
 
-MAXPROC=$(($(grep -c ^processor /proc/cpuinfo)/2))
+#MAXPROC=$(($(grep -c ^processor /proc/cpuinfo)/2))
+MAXPROC=$6
 
 DATANAME=$1
 REFGENOME=$2
 PARASET=$3
-SRCRDIR=$4
+SRCDIR=$4
 
 if [ "${3}" == "auto"  ]; then
 	unset PARASET
@@ -28,9 +29,9 @@ DATADIR="${WORKDIR}/final"
 IDLSDIR="${WORKDIR}/ids"
 IDXDIR="${WORKDIR}/index"
 
-BWAPATH="${SRCRDIR}/bwa"
-SAMPATH="${SRCRDIR}/samtools"
-UTILDIR="${SRCRDIR}/libs/map_proc/utils"
+BWAPATH="${SRCDIR}/bwa"
+SAMPATH="${SRCDIR}/samtools"
+UTILDIR="${SRCDIR}/libs/map_proc/utils"
 
 function do_mkdir {
 	mkdir -p "${LOGSDIR}" &> /dev/null
@@ -59,14 +60,14 @@ function do_build {
 
 	echo "[bwa] mem"
 	${BWAPATH}/bwa mem ${PARASET} -t ${MAXPROC} -a index/${REFGENOME} "${DATANAME}.fastq" \
-	> "${WORKDIR}/${DATANAME}_ecv_all.sam" 2> >(tee "${LOGSDIR}/${DATANAME}_mem" >&2) > /dev/null
+	> "${WORKDIR}/${DATANAME}_ecv_all.sam" 2> >(tee "${LOGSDIR}/${DATANAME}_mem" >&2)
 }
 
 function do_extract {
 	echo "[fastq and ans]"
 	# filter out flags of 256 (not primary alignment) and 2048 (supplementary alignment)
 	# it shall equal to the whole data
-	${SAMPATH}/samtools view -S -h -F 2304 "${WORKDIR}/${DATANAME}_ecv_all.sam" 2> /dev/null | \
+	samtools view -S -h -F 2304 "${WORKDIR}/${DATANAME}_ecv_all.sam" 2> /dev/null | \
 	grep -v "^@" | \
 	awk -v FNAME="${DATADIR}/${DATANAME}.fastq" -v ANAME="${DATADIR}/${GSTD}.ans" '{
 		print "@"$1"\n"$10"\n+\n"$11 > FNAME

@@ -12,11 +12,11 @@ if [ -d bwa ]; then
 fi
 
 #install bowtie2
-echo "install bowtie2-2.3.4"
-wget https://downloads.sourceforge.net/project/bowtie-bio/bowtie2/2.3.4.1/bowtie2-2.3.4.1-linux-x86_64.zip
-unzip bowtie2-2.3.4.1-linux-x86_64.zip
-rm bowtie2-2.3.4.1-linux-x86_64.zip
-mv bowtie2-2.3.4.1-linux-x86_64 bowtie2
+#echo "install bowtie2-2.3.4"
+#wget https://downloads.sourceforge.net/project/bowtie-bio/bowtie2/2.3.4.1/bowtie2-2.3.4.1-linux-x86_64.zip
+#unzip bowtie2-2.3.4.1-linux-x86_64.zip
+#rm bowtie2-2.3.4.1-linux-x86_64.zip
+#mv bowtie2-2.3.4.1-linux-x86_64 bowtie2
 
 #install bwa
 echo "install bwa-0.7.15"
@@ -26,16 +26,8 @@ rm bwa-0.7.15.tar.bz2
 mv bwa-0.7.15 bwa
 cd bwa; make
 
-#install KMC3
-cd ${INSTDIR}/libs
-git clone https://github.com/refresh-bio/KMC.git
-cd KMC; make DISABLE_ASMLIB=true
-
-#compile kcnLandscape
-cd ${INSTDIR}/libs/kcnLandscape
-g++ histoAnalyze.cpp -o histoAnalyze
-
 #install quast
+echo "install quast"
 cd ${INSTDIR}
 wget https://downloads.sourceforge.net/project/quast/quast-4.6.3.tar.gz
 tar -xzf quast-4.6.3.tar.gz
@@ -43,5 +35,8 @@ mv quast-4.6.3 quast;
 rm quast-4.6.3.tar.gz
 cp ${INSTDIR}/libs/quast_code/* ${INSTDIR}/quast/quast_libs
 
+#build readQdist
+echo "build files for generating pre-assembly quality report"
+bash ${INSTDIR}/libs/preQ/_build.sh
 #install python packages
-echo "install python packages"
+#echo "install python packages"

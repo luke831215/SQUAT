@@ -1,31 +1,76 @@
 #!/bin/bash
-#set -e
+
+#Automatic exit from bash shell script on error
+set -e
 
 usage()
 {
-	echo -e "SQUAT: Sequencing Quality Assessment Tool"
-	echo -e "Usage: $0 seq1 seq2 ...  seqN [-o <output_dir>] [-r <ref_seq>]\n"
-	echo "Optional args:"
-	echo "-t	--thread	<int>	Number of threads to use" 
-	echo "-k	--keep	Don't flush The sam file after alignment" 
-	echo "-s 	--subset 	<str>	Return the subset of sequencing reads according to the labels (in capitals, e.g. PSCO)" 
-	echo "-g   <str>   Path to the reference genome file for GAGE benchmark tool" 
-    echo "--gage    Activate gage mode, must specify reference genome (-R)"
-    echo "--noextract    extract the zip file containing the report information"
+    echo -e "SQUAT: Sequencing Quality Assessment Tool"
+    echo -e "Usage: $0 seq1 seq2 ...  seqN [-o <output_dir>] [-r <ref_seq>]\n"
+    echo "Optional args:"
+    echo "-t    --thread    <int>   Number of threads to use" 
+    echo "-k    --keep  Don't flush The sam file after alignment" 
+    echo "-s    --subset    <str>   Return the subset of sequencing reads according to the labels (in capitals, e.g. PSCO)" 
+    echo "-g   <str>   Path to the reference genome file for GAGE benchmark tool" 
+    echo "--gage    Activate gage mode, must specify reference genome (-g)"
+    echo "--sample-size    the read size for random sampling, default 1M"
+    echo "--full-set    No random sampling, take the whole read file as input"
+    echo "-c   <float>   The threshold for overall sequencing quality" 
+    echo "--mt   --mismatch-thre <float>    Threshold for reads with substitution errors. Above threshold = poor quality reads, default 0.2"  
+    echo "--ct   --clip-thre    <float>   Threshold for reads containing clips. Above threshold = poor quality reads, default 0.3"  
+    echo "--ot   --others-thre    <float>   Threshold for reads with other errors. Above threshold = poor quality reads, default 0.1" 
+    echo "--nt   --n-thre   <float>   Threshold for reads containing N. Above threshold = poor quality reads, default 0.1" 
+    #echo "--noextract    Don't extract the zip file containing the report information"
 }
 
-function to_abs	{
-	case $1 in
-  		/*) absolute=$1;;
-  		*) absolute=$PWD/$1;;
-	esac
-	echo $absolute
+function change_id {
+    cat $2 | \
+    awk -v OUT=$1 \
+        -v MATCH=$(dirname "$1")/$3.ids \
+    'BEGIN{
+        id = 0
+    }
+    {
+        if(NR%4==1){
+            print "@"id > OUT
+            print id"\t@"$0 > MATCH
+            id+=1
+        }
+        else{
+            print $0 > OUT
+        }
+    }
+    END{
+        print id
+    }
+    '
 }
+
+
+function to_abs {
+    case $1 in
+        /*) absolute=$1;;
+        *) absolute=$PWD/$1;;
+    esac
+    echo $absolute
+}
+
 
 if [[ $# -eq 0 ]]; then
     usage
     exit 1
 fi
+
+#default parameter value
+MAXPROC=$(($(grep -c ^processor /proc/cpuinfo)/3))
+KEEP_SAM=NO
+NUM_SAMPLE=1000000
+FULLSET=NO
+CRITERIA=0.2
+NM_THRE=0.2
+CR_THRE=0.3
+O_THRE=0.1
+N_THRE=0.1
 
 SEQ_LIST=()
 NUM_SEQ=0
@@ -47,11 +92,11 @@ key="$1"
 
 case $key in
     -h|--help)
-	usage
-	exit 0
-	;;
+    usage
+    exit 0
+    ;;
     -k|--keep)
-	KEEP_SAM=YES
+    KEEP_SAM=YES
     shift
     ;;
     -o)
@@ -83,59 +128,98 @@ case $key in
     GAGE=YES
     shift # past argument
     ;;
-    --extract)
-    EXTRACT=NO
+    --sample-size)
+    NUM_SAMPLE=$2
+    shift # past argument
+    shift # past argument
+    ;;
+    --full-set)
+    FULLSET=YES
+    shift # past argument
+    ;;
+    -c)
+    CRITERIA=$2
+    shift # past argument
+    shift # past argument
+    ;;
+    --mt|--mismatch-thre)
+    NM_THRE=$2
+    shift # past argument
+    shift # past argument
+    ;;
+    --cr|--clip-thre)
+    CR_THRE=$2
+    shift # past argument
+    shift # past argument
+    ;;
+    --ot|--others-thre)
+    O_THRE=$2
+    shift # past argument
+    shift # past argument
+    ;;
+    --nt|--n-thre)
+    N_THRE=$2
+    shift # past argument
     shift # past argument
     ;;
     *)    # unknown option
-	echo "Unknown option: "$1 >&2
-	exit 1
+    echo "Unknown option: "$1 >&2
+    exit 1
     ;;
 esac
 done
 
 if [[ -z "$OUTDIR" || -z "$REFLOC" ]]; then
     usage
-	exit 1
+    exit 1
 fi
 
-if [[ -z "$MAXPROC" ]]; then
-	MAXPROC=$(($(grep -c ^processor /proc/cpuinfo)/3))
-fi
+EXECDIR="$( cd "$(dirname "$0")" ; pwd)"
 
-if [[ -z "$KEEP_SAM" ]]; then
-	KEEP_SAM=NO
-fi
-
-if [[ -z "$EXTRACT" ]]; then
-    EXTRACT=YES
-fi
+#write config file
+echo "PQ%: ${CRITERIA}" >> ${OUTDIR}/config
+echo "MR%: ${NM_THRE}" >> ${OUTDIR}/config
+echo "CR%: ${CR_THRE}" >> ${OUTDIR}/config
+echo "OR%: ${O_THRE}" >> ${OUTDIR}/config
+echo "NR%: ${N_THRE}" >> ${OUTDIR}/config
 
 
 function do_squat {
-    ECVLOC="$( to_abs $1 )"
+    ORGECV="$( to_abs $1 )"
     #echo $ECVLOC
-    xbase=${ECVLOC##*/}
+    xbase=${ORGECV##*/}
     DATA=${xbase%.*}
     SEQDIR=${OUTDIR}/${DATA}
+    ECVLOC=${SEQDIR}/${DATA}.fastq
     #ECVLOC=$(dirname "$0")/${DATA}_ecv.fastq
-    
-    echo "Calculate number of reads"
-    READSIZE=$(($(wc -l $ECVLOC | cut -d ' ' -f 1) /4))
-
-    EXECDIR="$( cd "$(dirname "$0")" ; pwd)"
-    #shift $((OPTIND-1))
-    #echo "$@"
 
     #delete if output dir already exists
     if [ -d ${SEQDIR} ]; then
-        rm -rf ${SEQDIR} &> /dev/null
-        mkdir ${SEQDIR} &> /dev/null
+        rm -r ${SEQDIR} &> /dev/null
+    fi
+    mkdir -p ${SEQDIR} &> /dev/null
+
+    echo "Start examining ${DATA}"
+
+    echo "Calculate number of reads"
+    if [ "$FULLSET" == "YES" ]; then
+        READSIZE=$( change_id ${ECVLOC} ${ORGECV} ${DATA} )
+        NUM_SAMPLE=${READSIZE}
+        echo "No. of reads: ${READSIZE}"
+    else
+        READSIZE=$(($(wc -l $ORGECV | cut -d ' ' -f 1) /4))
+        if [ "$NUM_SAMPLE" -gt "$READSIZE" ]; then
+            NUM_SAMPLE=change_id ${ECVLOC} ${ORGECV} ${DATA}
+            echo "No. of reads: ${NUM_SAMPLE}"    
+        else
+            echo "sampling ${NUM_SAMPLE} out of ${READSIZE} records"
+            python ${EXECDIR}/libs/rand_sample.py ${ECVLOC} ${ORGECV} ${READSIZE} ${NUM_SAMPLE}
+        fi
     fi
 
     #map reads to genome using alignment tools
-    echo "map reads to genome using alignment tools"
-    bash ${EXECDIR}/libs/run_mapping.sh $EXECDIR $SEQDIR $DATA $READSIZE $REFLOC $ECVLOC $MAXPROC 
+    echo "BWA read mapping"
+    bash ${EXECDIR}/libs/run_mapping.sh ${EXECDIR} ${SEQDIR} ${DATA} ${READSIZE} ${REFLOC} ${ECVLOC} ${MAXPROC}
 
     #quast evaluation
     echo "Evaluate genome assemblies"
@@ -149,24 +233,19 @@ function do_squat {
     echo "Generate reports"
     mkdir -p ${SEQDIR}/subset &> /dev/null
     mkdir -p ${SEQDIR}/images &> /dev/null
-    python ${EXECDIR}/analysis.py ${OUTDIR} ${ECVLOC} ${DATA} ${READSIZE} ${SUBSET}
+    python ${EXECDIR}/analysis.py ${OUTDIR} ${ECVLOC} ${DATA} ${NUM_SAMPLE} ${READSIZE} ${SUBSET}
 
     #pre-Q report
-    #${EXECDIR}/libs/peQdist ${ECVLOC} ${SEQDIR}/${Data}_peQ --interleave
+    ${EXECDIR}/libs/preQ/readQdist ${ECVLOC} ${SEQDIR}/qc_report 2>&1 > /dev/null
 
     #flush sam files
     if [ "$KEEP_SAM" == "NO" ]; then
-        for tool in bowtie2-local bowtie2-endtoend bwa-mem bwa-endtoend; do
+        echo "Flushing sam files"
+        for tool in bwa-mem bwa-backtrack; do
             rm ${SEQDIR}/${tool}/${DATA}_ecv_all.sam
         done
     fi
 
-    #zip the file
-    echo "Compress files"
-    zip -r ${SEQDIR} ${SEQDIR}/* 2>&1 > /dev/null
-    if [ "$EXTRACT" == "NO" ]; then
-        rm -r ${SEQDIR} &> /dev/null
-    fi
 }
 
 for ((i=0;i<$NUM_SEQ;i++)); do

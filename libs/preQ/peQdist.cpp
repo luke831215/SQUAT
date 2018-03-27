@@ -329,17 +329,12 @@ bool ProbeFASTQPE(char *r1, char *r2, char *outPrjName)
 	fprintf(fphtm, "  <tr><td><br>--- MinimalQ distribution ---</td></tr>\n");
 	fprintf(fphtm, "  <tr><td id=mq style=\"height: 300px\"></td></tr>\n");
 
-	fprintf(fphtm, "  <tr><td><br>--- %%HighQ(15) distribution ---</td></tr>\n");
-	fprintf(fphtm, "  <tr><td id=hq15 style=\"height: 300px\"></td></tr>\n");
+	for (int i=0; i<HiQParamSize; i++)
+	{
+		fprintf(fphtm, "  <tr><td><br>--- %%HighQ(%d) distribution ---</td></tr>\n", HiQTh[i]);
+		fprintf(fphtm, "  <tr><td id=hq%d style=\"height: 300px\"></td></tr>\n", HiQTh[i]);
+	}
 
-	fprintf(fphtm, "  <tr><td><br>--- %%HighQ(18) distribution ---</td></tr>\n");
-	fprintf(fphtm, "  <tr><td id=hq18 style=\"height: 300px\"></td></tr>\n");
-
-	fprintf(fphtm, "  <tr><td><br>--- %%HighQ(20) distribution ---</td></tr>\n");
-	fprintf(fphtm, "  <tr><td id=hq20 style=\"height: 300px\"></td></tr>\n");
-
-	fprintf(fphtm, "  <tr><td><br>--- %%HighQ(25) distribution ---</td></tr>\n");
-	fprintf(fphtm, "  <tr><td id=hq25 style=\"height: 300px\"></td></tr>\n");
 	fprintf(fphtm, "</table>\n\n");
 
 	// script
@@ -507,7 +502,7 @@ int main(int argc, char **argv)
 	{
 		printf("=== peQdist: Read PE-FASTQ files and generate quality distribution and GC%% of paired-end FASTQ files ===\n\n");
 		printf("Usage: peQdist r1.fq r2.fq outPrjName\n");
-		printf("Input: r1.fq (read1 fastq of PE), r2.fq (read2 fastq of PE) outPrjName(name of output)\n");
+		printf("Input: r1.fq (read1 fastq of PE), r2.fq (read2 fastq of PE)\n");
 		printf("Output: outPrjName.htm, outPrjName.csv\n");
 		printf("Verson: 0.91 (2017/11) \n");
 		printf("Author: Yu-Jung Chang\n\n");

@@ -4,11 +4,12 @@
 #1/bin/bash
 
 if [ "$#" -lt "5" ]; then
-	echo "Using:" $0 "[DataName] [RefGenome] [PARASET] [SRCDIR] [(A)ll, (B)uild, (E)xtract, (I)ds, (P)ostAA, (S)tats, (U)pload, (W)ipe]"
+	echo "Using:" $0 "[DataName] [RefGenome] [PARASET] [SRCDIR] [(A)ll, (B)uild, (E)xtract, (I)ds, (P)ostAA, (S)tats, (U)pload, (W)ipe] [THREADS]"
 	exit
 fi
 
-MAXPROC=$(($(grep -c ^processor /proc/cpuinfo)/2))
+#MAXPROC=$(($(grep -c ^processor /proc/cpuinfo)/2))
+MAXPROC=$6
 
 DATANAME=$1
 REFGENOME=$2
@@ -30,7 +31,7 @@ IDLSDIR="${WORKDIR}/ids"
 IDXDIR="${WORKDIR}/index"
 
 BWAPATH="${SRCRDIR}/bwa"
-SAMPATH="${SRCRDIR}/samtools"
+#SAMPATH="${SRCRDIR}/samtools"
 UTILDIR="${SRCRDIR}/libs/map_proc/utils"
 
 function do_mkdir {
@@ -74,7 +75,7 @@ function do_extract {
 	printf "%s" ""
 	# filter out flags of 256 (not primary alignment) and 2048 (supplementary alignment)
 	# it shall equal to the whole data
-	${SAMPATH}/samtools view -S -h -F 2304 "${WORKDIR}/${DATANAME}_ecv_all.sam" 2> /dev/null | \
+	samtools view -S -h -F 2304 "${WORKDIR}/${DATANAME}_ecv_all.sam" 2> /dev/null | \
 	grep -v "^@" | \
 	awk -v FNAME="${DATADIR}/${DATANAME}.fastq" \
 		-v RNFNAME="${DATADIR}/${DATANAME}_rn.fastq" \

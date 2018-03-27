@@ -12,9 +12,6 @@ import csv
 
 colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
 labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N']
-THRE = 0.3
-N_THRE = 0.1
-CRITERIA = 0.2
 
 
 def save_to_csv(stats, src_dir, aln_tool_list):
@@ -52,7 +49,7 @@ def fill_in_label(stats, soup, template_fpath):
 			cell.string = stats[i][j]
 
 
-def save_to_html(all_html_fpath, template_fpath, data, aln_tool_list, label_distribution, basic_stats, gen_stats):
+def save_to_html(all_html_fpath, template_fpath, data, thre, aln_tool_list, label_distribution, basic_stats, gen_stats):
 	"""concat all figures into report.html by inserting figures into template.html"""
 	src_dir = os.path.dirname(all_html_fpath) + '/' + data
 	icon_dirpath = "{}/icons".format(os.path.dirname(template_fpath))
@@ -61,14 +58,34 @@ def save_to_html(all_html_fpath, template_fpath, data, aln_tool_list, label_dist
 		time_sec = soup.find('p', id='time')
 		time_sec.string = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
 
+		#fill in thre table
+		names = ['Overall PQ%', 'S ratio', 'C ratio', 'O ratio', 'N ratio']
+		thre_table = soup.find('table', **{"class": 'threshold-table'})
+		keys = list(thre.keys())
+		for i in range(len(names)):
+			new_tr= soup.new_tag("tr")
+			td1, td2 = soup.new_tag('td'), soup.new_tag('td')
+			td1.string = names[i]
+			td2.string = '{:.0%}'.format(thre[keys[i]])
+			new_tr.append(td1)
+			new_tr.append(td2)
+			thre_table.append(new_tr)
+
+
 		main = soup.find('div', **{"class": 'main'})
 		
 		data_sec = main.find('h2', **{"class": 'data'})
 		data_sec.string = data
 
 		#Overall review depends on avg. poor ratio
-		poor_ratio = float(basic_stats[3][1].strip('%'))/100
-		if poor_ratio < CRITERIA:
+		poor_ratio = None
+		for row in basic_stats:
+			if row[0] == "Avg. sequence% labeled as poor quality":
+				poor_ratio = float(row[1].strip('%'))/100
+				break
+
+		#poor_ratio = float(basic_stats[3][1].strip('%'))/100
+		if poor_ratio < thre['PQ']:
 			span_class = ["result"]
 			review = "Percentage of poor quality sequencing reads: {:.1%}".format(poor_ratio)
 			icon_fpath = '{}/check.png'.format(icon_dirpath)
@@ -121,7 +138,8 @@ def save_to_html(all_html_fpath, template_fpath, data, aln_tool_list, label_dist
 		#section II
 		#the rest of distribution graph for each aligner
 		i = 0
-		title_list = ['BWA - MEM', 'Bowtie2 - local', 'BWA - endtoend', 'Bowtie2 - endtoend']
+		#title_list = ['BWA - MEM', 'Bowtie2 - local', 'BWA - backtrack', 'Bowtie2 - backtrack']
+		title_list = ['BWA - MEM', 'BWA - backtrack']
 		sec_two = soup.find('div', {"class": 'sec-2'})
 		for aln_tool in aln_tool_list:
 			title = soup.new_tag("h2", **{'class': 'plot-name'})
@@ -143,7 +161,8 @@ def save_to_html(all_html_fpath, template_fpath, data, aln_tool_list, label_dist
 		#write report.html
 		with open(all_html_fpath, 'w') as w:
 			w.write(str(soup))
-
+		with open(src_dir + '/report.html', 'w') as w:
+			w.write(str(soup))
 
 def save_to_pdf(all_pdf_fpath, plot_figures):
 	"""concat all figures into report.pdf"""
@@ -187,11 +206,11 @@ def get_genome_eval_stat(src_dir):
 		]
 	else:
 		stats_name = [
-			"# Contigs", "Max Contigs (Kbp)", "N25 (Kbp)", "N50 (Kbp)", "N75 (Kbp)",
+			"# Contigs", "Assembly Size (Mbp)", "Max Contigs (Kbp)", "N25 (Kbp)", "N50 (Kbp)", "N75 (Kbp)",
 			"L80", "L90", "L99", "# N's per 100 kbp", "GC (%)"
 		]
 		cor_stats_name = [
-			"# contigs", "Largest contig", "N25", "N50", "N75", 
+			"# contigs", "Total length", "Largest contig", "N25", "N50", "N75", 
 			"L80", "L90", "L99", "# N's per 100 kbp", "GC (%)"
 		]
 
@@ -206,7 +225,7 @@ def get_genome_eval_stat(src_dir):
 					[name, stat] = re.split(r'\s{2,}', line.strip())[:2]
 					stat = re.search(r"^\d+[.\d+]*", stat.split()[0]).group(0)
 				except:
-					print(line.strip())
+					#print(line.strip())
 					continue
 					#sys.exit(1)
 				stats[name] = stat
@@ -224,13 +243,16 @@ def get_genome_eval_stat(src_dir):
 				value = int(value)
 				if 'Kbp' in stats_name[i]:
 					value = value / 1000
+
+				if 'Mbp' in stats_name[i]:
+					value = value / 1000000
 				value = '{:,}'.format(round(value, 1))
 			rows.append([stats_name[i], value])
 
 	return rows
 
 
-def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, xlabel='', label='', cigar_list={}):
+def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, xlabel='', label='', thre=''):
 	hist, bins = np.histogram(data, bins=20)
 
 	fig = plt.figure(figsize=(15, 10))
@@ -243,19 +265,20 @@ def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, 
 
 	#add legend
 	num_read = np.sum(label_array == label)
-	if 'Alignment Score' not in xlabel:
-		ax.axvline(THRE, color='red', zorder=20)
-		ratio_good = np.sum(data < THRE) / num_read if not num_read else 0
+	#if 'Alignment Score' not in xlabel:
+	if thre:
+		ax.axvline(thre, color='red', zorder=20)
+		ratio_good = np.sum(data < thre) / num_read if num_read else 0
 		ratio_bad = 1 - ratio_good
-		ax.plot(1, 1, label='Below threshold (eligible): {:.1%}'.format(ratio_good), marker='', ls='')
-		ax.plot(1, 1, label='Above threshold (poor): {:.1%}'.format(ratio_bad), marker='', ls='')
+		ax.plot(1, 1, label='Below threshold (high quality): {:.1%}'.format(ratio_good), marker='', ls='')
+		ax.plot(1, 1, label='Above threshold (poor quality): {:.1%}'.format(ratio_bad), marker='', ls='')
 
 		#zoom in the graph if necessary
 		if np.max(data) < 0.5:
 			ax.set_xlim(0, 0.5)
-			ax.text(THRE*2, 0.5, 'threshold', transform=ax.transAxes)
+			ax.text(thre*2, 0.5, '{} ratio'.format(label), transform=ax.transAxes, zorder=21)
 		else:
-			ax.text(THRE, 0.5, 'threshold', transform=ax.transAxes)
+			ax.text(thre, 0.5, '{} ratio'.format(label), transform=ax.transAxes, zorder=21)
 	
 	label_dis = num_read / read_size
 	ax.plot(1, 1, label='No. of {0} reads: {1} ({2:.1%})'.format(label, num_read, label_dis), marker='', ls='')
@@ -266,12 +289,18 @@ def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, 
 
 	plot_figures.append(fig)
 
+	if xlabel == 'Mismatch%':
+		fig_name = 'mismatch_ratio'
+	elif xlabel == 'Clip%':
+		fig_name = 'clip_ratio'
+	else:
+		fig_name = 'aln_score_{}'.format(label)
 	#title = '{0} distribution of {1} reads {2}'.format(xlabel, label, aln_tool)
-	plt.savefig('{0}/{1}/imgs/{2}_dis_{3}.png'.format(src_dir, aln_tool, xlabel, label))
+	plt.savefig('{0}/{1}/imgs/{2}.png'.format(src_dir, aln_tool, fig_name))
 	plt.close()
 
 
-def draw_bar_bi(ax, field_list, read_size, idx, label='', thre=THRE):
+def draw_bar_bi(ax, field_list, read_size, idx, thre, label=''):
 	upper_cnt, lower_cnt = 0, 0
 	for field in field_list:
 		if field < thre:
@@ -280,23 +309,23 @@ def draw_bar_bi(ax, field_list, read_size, idx, label='', thre=THRE):
 			lower_cnt += 1
 	
 	#print(label, upper_cnt, lower_cnt)
-	value = round(upper_cnt / read_size * 100)
-	ax.bar(idx, value, color=colors[idx], align='center', width=0.5)#, label=label)#label=r'${}_+$'.format(label))
+	value1 = round(upper_cnt / read_size * 100)
+	ax.bar(idx, value1, color=colors[idx], align='center', width=0.5)#, label=label)#label=r'${}_+$'.format(label))
 	if upper_cnt:
-		num = '~0' if value == 0 else value
+		num = '~0' if value1 == 0 else value1
 	else:
 		num = 0
-	ax.text(idx, value+10, '{}'.format(num), ha='center')
+	ax.text(idx, value1+5, '{}'.format(num), ha='center')
 	
-	value = round(-1 * lower_cnt / read_size * 100)	
-	ax.bar(idx, value, color=colors[idx], align='center', width=0.5)#label=r'${}_-$'.format(label))
+	value2 = round(-1 * lower_cnt / read_size * 100)	
+	ax.bar(idx, value2, color=colors[idx], align='center', width=0.5)#label=r'${}_-$'.format(label))
 	if lower_cnt:
-		num = '~0' if value == 0 else value
+		num = '~0' if value2 == 0 else value2
 	else:
 		num = 0
-	ax.text(idx, value-10, '{}'.format(num), ha='center')
+	ax.text(idx, value2-5, '{}'.format(num), ha='center')
 
-	return lower_cnt
+	return value1, value2, lower_cnt
 
 
 def draw_bar(ax, label_array, read_size, idx, label=''):
@@ -308,55 +337,69 @@ def draw_bar(ax, label_array, read_size, idx, label=''):
 		num = '~0' if value == 0 else value
 	else:
 		num = 0
-	ax.text(idx, value+10*constant, '{}'.format(num), ha='center')
+	ax.text(idx, value+5*constant, '{}'.format(num), ha='center')
+
+	return value
 
 
-def do_label_dis_bar(ax, align_array, aln_tool, label_array, crt_label=''):
+def do_label_dis_bar(ax, align_array, aln_tool, label_array, thre):
 	read_size = len(align_array)
 	patch_handles = {}
-	x_labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N'] if 'endtoend' not in aln_tool else ['P', 'S', 'O', 'M', 'F', 'N']
+	#x_labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N'] if 'backtrack' not in aln_tool else ['P', 'S', 'O', 'M', 'F', 'N']
+	x_labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N']
 	idx = 0
 	below_cnt = 0
+	ymax, ymin = 0, 0
 
 	#P
-	draw_bar(ax, label_array, read_size, idx, label='P')
+	value = draw_bar(ax, label_array, read_size, idx, label='P')
 	idx += 1
+	ymax = value if ymax < value else ymax
 
 	#S
 	nm_list = do_nm(align_array, label_array)
-	lower_cnt = draw_bar_bi(ax, nm_list, read_size, idx, label='S')
+	pos_value, neg_value, lower_cnt = draw_bar_bi(ax, nm_list, read_size, idx, thre['MR'], label='S')
 	below_cnt += lower_cnt
 	idx += 1
+	ymax = pos_value if ymax < pos_value else ymax
+	ymin = neg_value if ymin > pos_value else ymin
 	
 	#C
-	if 'endtoend' not in aln_tool:
-		cr_list = do_cr(align_array, label_array)
-		lower_cnt = draw_bar_bi(ax, cr_list, read_size, idx, label='C')
-		below_cnt += lower_cnt
-		idx += 1
-	else:
-		cr_list = None
+	#if 'backtrack' not in aln_tool:
+	cr_list = do_cr(align_array, label_array)
+	pos_value, neg_value, lower_cnt = draw_bar_bi(ax, cr_list, read_size, idx, thre['CR'], label='C')
+	below_cnt += lower_cnt
+	idx += 1
+	ymax = pos_value if ymax < pos_value else ymax
+	ymin = neg_value if ymin > pos_value else ymin
 
 	#O
 	o_list = do_others(align_array, label_array)
-	lower_cnt = draw_bar_bi(ax, o_list, read_size, idx, label='O')
+	pos_value, neg_value, lower_cnt = draw_bar_bi(ax, o_list, read_size, idx, thre['OR'], label='O')
 	below_cnt += lower_cnt
 	idx += 1
+	ymax = pos_value if ymax < pos_value else ymax
+	ymin = neg_value if ymin > pos_value else ymin
 
 	#M
-	draw_bar(ax, label_array, read_size, idx, label='M')
+	value = draw_bar(ax, label_array, read_size, idx, label='M')
 	idx += 1
+	ymax = value if ymax < value else ymax
 
 	#F
-	draw_bar(ax, label_array, read_size, idx, label='F')
+	value = draw_bar(ax, label_array, read_size, idx, label='F')
 	below_cnt += np.sum(label_array == 'F')
 	idx += 1
+	ymin = value if ymin > value else ymin
 
 	#N
 	n_list = do_N(align_array, label_array)
-	lower_cnt = draw_bar_bi(ax, n_list, read_size, idx, label='N', thre=N_THRE)
+	pos_value, neg_value, lower_cnt = draw_bar_bi(ax, n_list, read_size, idx, thre['NR'], label='N')
 	below_cnt += lower_cnt
 	idx += 1
+	ymax = pos_value if ymax < pos_value else ymax
+	ymin = neg_value if ymin > pos_value else ymin
+
 
 	below_pct = below_cnt / read_size
 	above_pct = 1 - below_pct
@@ -368,10 +411,11 @@ def do_label_dis_bar(ax, align_array, aln_tool, label_array, crt_label=''):
 	ax.set_xticklabels(x_labels)
 	ax.set_ylabel('Percentage')
 	ax.legend(loc=1, prop={'size': 10}, frameon=False)
-	ax.set_title('{}'.format(aln_tool))
+	title = aln_tool + ' (local)' if aln_tool == 'bwa-mem' else aln_tool + ' (end2end)'
+	ax.set_title('{}'.format(title))
 
 	#record barplot input for future use
-	return {'P': None, 'S': nm_list, 'C': cr_list, 'O': o_list, 'M': None, 'F': None, 'N': n_list}, below_pct
+	return {'P': None, 'S': nm_list, 'C': cr_list, 'O': o_list, 'M': None, 'F': None, 'N': n_list}, below_pct, ymax, ymin
 
 
 def add_text(ax, text, fontsize='x-large', weight='medium'):
@@ -453,17 +497,17 @@ def do_nm(align_array, label_array):
 
 	for _id in label_id_list:
 		try:
-			nm_list[cnt] = align_array[_id]['num_mismatch'][0]/len(align_array[_id]['seq'][0])
-			cnt += 1
+			nm_list[cnt] = align_array[_id]['num_mismatch']/len(align_array[_id]['seq'])
 		except:
 			print(_id)
+		cnt += 1
 
 
 	return nm_list
 
 
 def do_cr(align_array, label_array):
-	"""clip rate, excluding bowtie2-endtoend (no clip labels)"""
+	"""clip rate, excluding bowtie2-backtrack (no clip labels)"""
 
 	cnt = 0
 	label_id_list = np.where(label_array == 'C')[0]
@@ -471,7 +515,7 @@ def do_cr(align_array, label_array):
 
 	for _id in label_id_list:
 		length, clip_size = 0, 0
-		cigar = align_array[_id]['cigar'][0]
+		cigar = align_array[_id]['cigar']
 		m = re.findall('\d+[MIDNSHP=X]', cigar)
 		for value in m:
 			length += int(value[:-1])
@@ -485,15 +529,15 @@ def do_cr(align_array, label_array):
 
 
 def do_as(align_array, label_array, label):
-	""""alignment score, excluding bwa-endtoend (no AS field) and bowtie2-endtoend for clipped reads"""
+	""""alignment score, excluding bwa-backtrack (no AS field) and bowtie2-backtrack for clipped reads"""
 
-	label_id_list = np.where(label_array == label)
-	as_list = np.zeros(len(label_id_list[0]))
+	label_id_list = np.where(label_array == label)[0]
+	as_list = np.zeros(len(label_id_list))
 	align_subset = align_array[label_id_list]
 	cnt = 0
 
 	for alignment in align_subset:
-		as_list[cnt] = alignment['AS'][0]
+		as_list[cnt] = alignment['AS']
 		cnt += 1
 
 	return as_list
@@ -506,7 +550,7 @@ def do_others(align_array, label_array):
 
 	for _id in label_id_list:
 		length, o_size = 0, 0
-		cigar = align_array[_id]['cigar'][0]
+		cigar = align_array[_id]['cigar']
 		m = re.findall('\d+[MIDNSHP=X]', cigar)
 		for value in m:
 			length += int(value[:-1])
@@ -525,7 +569,7 @@ def do_N(align_array, label_array):
 	n_list = np.zeros(len(label_id_list))
 	
 	for _id in label_id_list:
-		seq = align_array[_id]['seq'][0]
+		seq = align_array[_id]['seq']
 		if 'N' in seq:
 			n_size = seq.count('N')
 			n_list[cnt] = n_size / len(seq)

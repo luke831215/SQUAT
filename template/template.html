@@ -219,6 +219,10 @@
     padding-right: 5%;
   }
 
+  .middle {
+    text-align: center;
+  }
+
   #basic-table, #label-dis-table, #label-dis-barchart {
     padding-bottom: 10%;
   }
@@ -226,7 +230,7 @@
   .label-dis-table {
       font-family: sans-serif;
       margin: 0 auto;
-      width: 95%;
+      width: 80%;
       height: 80%;
   }
 
@@ -334,30 +338,31 @@
   background-color: #999;
 }
 .chart {
+  
+}
+
+.label-des-table, .threshold-table {
+  width: 100%;
   margin-top: 30%;
 }
 
-.label-des-table {
-  width: 100%;
-}
-
-.label-des-table, .label-des-table td {
+.label-des-table, .label-des-table td, .threshold-table, .threshold-table td {
   border-color: #CCC;
 }
 
-.label-des-table tr:first-child td {
+.label-des-table tr:first-child td, .threshold-table tr:first-child td {
   /*border-top: none;*/
 }
 
-.label-des-table tr:last-child td {
+.label-des-table tr:last-child td, .threshold-table tr:last-child td {
   /*border-bottom: none;*/
 }
 
-.label-des-table tr td:first-child {
+.label-des-table tr td:first-child, .threshold-table tr td:first-child {
   border-left: none;
 }
 
-.label-des-table tr td:last-child {
+.label-des-table tr td:last-child, .threshold-table tr td:last-child {
   border-right: none;
 }
 
@@ -385,6 +390,7 @@
   width: 40%;
   margin: 0;
   display: inline-block;
+  vertical-align: center;
 }
 
 .gen-eval-table td, .gen-eval-table th, .seq-info td, .seq-info th {
@@ -442,7 +448,7 @@
 
     <div class="ac">
       <input class="ac-input" id="ac-1" name="ac-1" type="checkbox" />
-      <label class="ac-label" for="ac-1">BWA - MEM</label>
+      <label class="ac-label" for="ac-1">BWA - MEM (local)</label>
       <article class="ac-text">
         <div class="ac-sub">
           <span class="ac-row" onclick="link('#bwa-mem-1')">
@@ -474,67 +480,17 @@
     </div>
 
     <div class="ac">
-      <input class="ac-input" id="ac-2" name="ac-2" type="checkbox" />
-      <label class="ac-label" for="ac-2">Bowtie2 - local</label>
-      <article class="ac-text">
-        <div class="ac-sub">
-          <span class="ac-row" onclick="link('#bowtie2-local-1')">
-            Mismatch ratio of S reads
-          </span>
-        </div>
-
-        <div class="ac-sub">
-          <span class="ac-row" onclick="link('#bowtie2-local-2')">
-            Clip ratio of C reads
-          </span>
-        </div>
-        <div class="ac-sub">
-          <span class="ac-row" onclick="link('#bowtie2-local-3')">
-            Alignment score of P reads
-          </span>
-        </div>
-        <div class="ac-sub">
-          <span class="ac-row" onclick="link('#bowtie2-local-4')">
-            Alignment score of S reads
-          </span>
-        </div>
-        <div class="ac-sub">
-          <span class="ac-row" onclick="link('#bowtie2-local-5')">
-            Alignment score of C reads
-          </span>
-        </div>
-      </article>
-    </div>
-
-    <div class="ac">
       <input class="ac-input" id="ac-3" name="ac-3" type="checkbox" />
-      <label class="ac-label" for="ac-3">BWA - endtoend</label>
+      <label class="ac-label" for="ac-3">BWA - backtrack (end2end)</label>
       <article class="ac-text">
         <div class="ac-sub">
-          <span class="ac-row" onclick="link('#bwa-endtoend-1')">
+          <span class="ac-row" onclick="link('#bwa-backtrack-1')">
             Alignment score of S reads
           </span>
         </div>
-      </article>
-    </div>
-
-    <div class="ac">
-      <input class="ac-input" id="ac-4" name="ac-4" type="checkbox" />
-      <label class="ac-label" for="ac-4">Bowtie2 - local</label>
-      <article class="ac-text">
         <div class="ac-sub">
-          <span class="ac-row" onclick="link('#bowtie2-endtoend-1')">
-            Mismatch ratio of S reads
-          </span>
-        </div>
-        <div class="ac-sub">
-          <span class="ac-row" onclick="link('#bowtie2-endtoend-2')">
-            Alignment score of P reads
-          </span>
-        </div>
-        <div class="ac-sub">
-          <span class="ac-row" onclick="link('#bowtie2-endtoend-3')">
-            Alignment score of S reads
+          <span class="ac-row" onclick="link('#bwa-backtrack-2')">
+            Clip ratio of C reads
           </span>
         </div>
       </article>
@@ -556,7 +512,7 @@
         </tr>
         <tr>
           <td>C</td>
-          <td>Reads that contain clips</td>
+          <td>Reads containing clips</td>
         </tr>
         <tr>
           <td>O</td>
@@ -572,7 +528,14 @@
         </tr>
         <tr>
           <td>N</td>
-          <td>Reads that contain N</td>
+          <td>Reads containing N</td>
+        </tr>
+      </table>
+
+      <table class="threshold-table">
+        <tr>
+          <td><strong>Threshold</strong></td>
+          <td><strong>Value</strong></td>
         </tr>
       </table>
     </div>
@@ -590,19 +553,21 @@
         <h2 class="plot-name">
           Basic Statistics
         </h2>
-        <table class="seq-info">
-          <tr>
-            <th>Seqeuencing reads information</th>
-            <th>Value</th>
-          </tr>
-        </table>
+        <div class="middle">
+          <table class="seq-info">
+            <tr>
+              <th>Seqeuencing reads</th>
+              <th>Value</th>
+            </tr>
+          </table>
 
-        <table class="gen-eval-table">
-          <tr>
-            <th>Reference sequence assembly </th>
-            <th>Value</th>
-          </tr>
-        </table>
+          <table class="gen-eval-table">
+            <tr>
+              <th>Reference assembly </th>
+              <th>Value</th>
+            </tr>
+          </table>
+        </div>
       </div>
 
       <div id="label-dis-table">
@@ -613,59 +578,43 @@
           <tr>
             <th colspan="2"></th>
             <th>BWA<br>MEM</th>
-            <th>Bowtie2<br>local</th>
-            <th>BWA<br>endtoend</th>
-            <th>Bowtie2<br>endtoend</th>
+            <th>BWA<br>backtrack</th>
           </tr>
           <tr>
             <td rowspan="4" width=15%>Uniquely-mapped Reads</td>
             <td><div class="label"><span class="label-icon">P</span><img src="icons/P.png" class="icon" /></div></td>
             <td id = "P1" class="value_col a" onclick="link('#bwa-mem-3')"></td>
-            <td id = "P2" class="value_col a" onclick="link('#bowtie2-local-3')"></td>
-            <td id = "P3" class = "value_col" ></td>
-            <td id = "P4" class="value_col a" onclick="link('#bowtie2-endtoend-2')"></td>
+            <td id = "P2" class = "value_col" ></td>
           </tr>
           <tr>
             <td><div class="label"><span class="label-icon">S</span><img src="icons/S.png" class="icon" /></div></td>
             <td id = "S1" class="value_col a" onclick="link('#bwa-mem-1')"></td>
-            <td id = "S2" class="value_col a" onclick="link('#bowtie2-local-1')"></td>
-            <td id = "S3" class="value_col a" onclick="link('#bwa-endtoend-1')"></td>
-            <td id = "S4" class="value_col a" onclick="link('#bowtie2-endtoend-1')"></td>
+            <td id = "S2" class="value_col a" onclick="link('#bwa-backtrack-1')"></td>
           </tr>
           <tr>
             <td><div class="label"><span class="label-icon">C</span><img src="icons/C.png" class="icon" /></div></td>
             <td id="C1" class="value_col a" onclick="link('#bwa-mem-2')"></td>
-            <td id = "C2" class = "value_col a" onclick="link('#bowtie2-local-2')"></td>
-            <td id = "C3" class = "value_col"></td>
-            <td id = "C4" class = "value_col"></td>
+            <td id = "C2" class = "value_col"></td>
           </tr>
           <tr>
             <td><div class="label"><span class="label-icon">O</span><img src="icons/O.png" class="icon" /></div></td>
             <td id = "O1" class = "value_col"></td>
             <td id = "O2" class = "value_col"></td>
-            <td id = "O3" class = "value_col"></td>
-            <td id = "O4" class = "value_col"></td>
           </tr>
           <tr>
             <td colspan="2"><div class="label"><span class="label-icon">M</span><img src="icons/M.png" class="icon" /></div></td>
             <td id = "M1" class = "value_col"></td>
             <td id = "M2" class = "value_col"></td>
-            <td id = "M3" class = "value_col"></td>
-            <td id = "M4" class = "value_col"></td>
           </tr>
           <tr>
             <td colspan="2"><div class="label"><span class="label-icon">F</span><img src="icons/F.png" class="icon" /></div></td>
             <td id = "F1" class = "value_col"></td>
             <td id = "F2" class = "value_col"></td>
-            <td id = "F3" class = "value_col"></td>
-            <td id = "F4" class = "value_col"></td>
           </tr>
           <tr>
             <td colspan="2"><div class="label"><span class="label-icon">N</span><img src="icons/N.png" class="icon" /></div></td>
             <td id = "N1" class = "value_col"></td>
             <td id = "N2" class = "value_col"></td>
-            <td id = "N3" class = "value_col"></td>
-            <td id = "N4" class = "value_col"></td>
           </tr>
         </table>
       </div>
