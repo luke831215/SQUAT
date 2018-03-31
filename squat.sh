@@ -14,12 +14,13 @@ usage()
     echo "-g   <str>   Path to the reference genome file for GAGE benchmark tool" 
     echo "--gage    Activate gage mode, must specify reference genome (-g)"
     echo "--sample-size    the read size for random sampling, default 1M"
-    echo "--full-set    No random sampling, take the whole read file as input"
+    echo "--all    No random sampling, take the whole read file as input"
     echo "-c   <float>   The threshold for overall sequencing quality" 
     echo "--mt   --mismatch-thre <float>    Threshold for reads with substitution errors. Above threshold = poor quality reads, default 0.2"  
     echo "--ct   --clip-thre    <float>   Threshold for reads containing clips. Above threshold = poor quality reads, default 0.3"  
     echo "--ot   --others-thre    <float>   Threshold for reads with other errors. Above threshold = poor quality reads, default 0.1" 
     echo "--nt   --n-thre   <float>   Threshold for reads containing N. Above threshold = poor quality reads, default 0.1" 
+    echo "--seed   <int>   Specify the seed for random sampling, default 0" 
     #echo "--noextract    Don't extract the zip file containing the report information"
 }
 
@@ -71,6 +72,7 @@ NM_THRE=0.2
 CR_THRE=0.3
 O_THRE=0.1
 N_THRE=0.1
+SEED=0
 
 SEQ_LIST=()
 NUM_SEQ=0
@@ -133,7 +135,7 @@ case $key in
     shift # past argument
     shift # past argument
     ;;
-    --full-set)
+    --all)
     FULLSET=YES
     shift # past argument
     ;;
@@ -162,6 +164,11 @@ case $key in
     shift # past argument
     shift # past argument
     ;;
+    --seed)
+    SEED=$2
+    shift # past argument
+    shift # past argument
+    ;;
     *)    # unknown option
     echo "Unknown option: "$1 >&2
     exit 1
@@ -177,7 +184,8 @@ fi
 EXECDIR="$( cd "$(dirname "$0")" ; pwd)"
 
 #write config file
-echo "PQ%: ${CRITERIA}" >> ${OUTDIR}/config
+mkdir -p ${OUTDIR} &> /dev/null
+echo "PQ%: ${CRITERIA}" > ${OUTDIR}/config
 echo "MR%: ${NM_THRE}" >> ${OUTDIR}/config
 echo "CR%: ${CR_THRE}" >> ${OUTDIR}/config
 echo "OR%: ${O_THRE}" >> ${OUTDIR}/config
@@ -209,11 +217,11 @@ function do_squat {
     else
         READSIZE=$(($(wc -l $ORGECV | cut -d ' ' -f 1) /4))
         if [ "$NUM_SAMPLE" -gt "$READSIZE" ]; then
-            NUM_SAMPLE=change_id ${ECVLOC} ${ORGECV} ${DATA}
+            NUM_SAMPLE=$( change_id ${ECVLOC} ${ORGECV} ${DATA} )
             echo "No. of reads: ${NUM_SAMPLE}"    
         else
             echo "sampling ${NUM_SAMPLE} out of ${READSIZE} records"
-            python ${EXECDIR}/libs/rand_sample.py ${ECVLOC} ${ORGECV} ${READSIZE} ${NUM_SAMPLE}
+            python ${EXECDIR}/libs/rand_sample.py ${ECVLOC} ${ORGECV} ${READSIZE} ${NUM_SAMPLE} ${SEED}
         fi
     fi
 
@@ -229,14 +237,15 @@ function do_squat {
         python ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} -R ${GAGELOC} --gage 2>&1 > /dev/null 
     fi
 
+    #pre-Q report
+    echo "Generate pre-assembly reports"
+    ${EXECDIR}/libs/preQ/readQdist ${ECVLOC} ${SEQDIR}/qc_report 2>&1 > /dev/null
+    
     #analysis modules
-    echo "Generate reports"
+    echo "Generate post-assembly reports"
     mkdir -p ${SEQDIR}/subset &> /dev/null
     mkdir -p ${SEQDIR}/images &> /dev/null
     python ${EXECDIR}/analysis.py ${OUTDIR} ${ECVLOC} ${DATA} ${NUM_SAMPLE} ${READSIZE} ${SUBSET}
-
-    #pre-Q report
-    ${EXECDIR}/libs/preQ/readQdist ${ECVLOC} ${SEQDIR}/qc_report 2>&1 > /dev/null
 
     #flush sam files
     if [ "$KEEP_SAM" == "NO" ]; then

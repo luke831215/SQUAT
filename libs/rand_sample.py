@@ -2,7 +2,8 @@ import sys
 import random
 import os
 
-output_file, input_file, readsize, num_sample = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
+output_file, input_file, readsize, num_sample, seed = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[4])
+random.seed(seed)
 num_sample = readsize if num_sample > readsize else num_sample
 ids_file = '{0}.ids'.format(os.path.splitext(output_file)[0])
 
