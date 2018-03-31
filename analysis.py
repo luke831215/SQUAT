@@ -137,9 +137,9 @@ def draw_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot
 	fig = plt.figure(figsize=(15, 10))
 	ymax, ymin = 0, 0
 	ax_list = [None] * len(aln_tool_list)
-	for i in range(len(aln_tool_list)):
+	for i, aln_tool in enumerate(aln_tool_list):
 		ax_list[i] = fig.add_subplot(len(aln_tool_list) / 2, 2, i+1)
-		cigar_dict[aln_tool_list[i]], poor_pct_list[i], ax_ymax, ax_ymin = plotter.do_label_dis_bar(ax_list[i], align_info_dict[aln_tool_list[i]], aln_tool_list[i], label_dict[aln_tool_list[i]], thre)
+		cigar_dict[aln_tool], poor_pct_list[i], ax_ymax, ax_ymin = plotter.do_label_dis_bar(ax_list[i], align_info_dict[aln_tool], aln_tool, label_dict[aln_tool], thre)
 		#x-axis
 		ax_list[i].axhline(color='black')
 		ymax = ax_ymax if ymax < ax_ymax else ymax
@@ -154,15 +154,16 @@ def draw_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot
 				"2. Bar below the x-axis: portion of reads with poor quality"
 				)
 	plt.figtext(0.1, 0.05, footnote, va="bottom", ha="left")
-	fig.savefig('{}/images/bar.png'.format(src_dir))
+	fig.savefig('{}/images/label_dis_bar.png'.format(src_dir))
 	plot_figures.append(fig)
 	plt.close()
 	avg_poor_pct = "{:.1%}".format(np.sum(poor_pct_list) / len(poor_pct_list))
 	return cigar_dict, avg_poor_pct
 
 
-def draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath, plot_figures):
+def draw_label_dis(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath, plot_figures):
 	plotter.do_label_dis_table(label_distribution, src_dir, aln_tool_list, plot_figures)
+	plotter.do_label_piechart(label_distribution, src_dir, aln_tool_list, plot_figures)
 
 
 def draw_genome_eval_table(stats, src_dir, plot_figures):
@@ -299,7 +300,7 @@ if __name__ == '__main__':
 	#label distribution table
 	label_dict = get_label_dict(data, aln_tool_list, read_size)
 	label_distribution = get_label_distribution(labels, aln_tool_list, src_dir, data, read_size)
-	draw_report_tables(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath, plot_figures)
+	draw_label_dis(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath, plot_figures)
 
 	
 	#save alignment info for each aligner tool

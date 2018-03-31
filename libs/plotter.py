@@ -128,8 +128,15 @@ def save_to_html(all_html_fpath, template_fpath, data, thre, aln_tool_list, labe
 		#set up label dis. table
 		fill_in_label(flatten(label_distribution, aln_tool_list), soup, template_fpath)
 
-		#plot label dis bar first
-		img_fpath = '{}/images/bar.png'.format(src_dir)
+		#plot label dis piechart
+		img_fpath = '{}/images/piechart.png'.format(src_dir)
+		data_uri = base64.b64encode(open(img_fpath, 'rb').read()).decode('utf-8').replace('\n', '')
+		label_dis_bar = soup.find("div", id="label-dis-piechart")
+		img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri))
+		label_dis_bar.append(img_src)
+
+		#plot label dis bar
+		img_fpath = '{}/images/label_dis_bar.png'.format(src_dir)
 		data_uri = base64.b64encode(open(img_fpath, 'rb').read()).decode('utf-8').replace('\n', '')
 		label_dis_bar = soup.find("div", id="label-dis-barchart")
 		img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri))
@@ -194,14 +201,14 @@ def get_genome_eval_stat(src_dir):
 	stats = {}
 	if GAGE:
 		stats_name = [
-				"# Contigs", "NG50 (Kbp)", "# c. Contigs", "c. Contigs Assembly Size (Mbp)",
-				"Max c. Contigs (Kbp)", "c. NG25 (Kbp)", "c. NG50 (Kbp)", "c. NG75 (Kbp)", 
+				"# Contigs", "Assembly Size (Mbp)", "N50 (Kbp)",
+				"Max Contigs (Kbp)", "NG25 (Kbp)", "NG50 (Kbp)", "NG75 (Kbp)", 
 				"LG80", "LG90", "LG99", "# N's per 100 kbp",
 				"GC (%)", "Genome Fraction (%)", "Indels >= 5", "Inversions", "Relocation", "Translocation"
 		]
 		cor_stats_name = [
-				"Contigs #", "Not corrected N50", "Corrected contig #", "Corrected assembly size",
-				"Max correct contig", "Corrected N25", "Corrected N50", "Corrected N75", "LG80", "LG90", "LG99", "# N's per 100 kbp",
+				"Contigs #", "Assembly size", "N50",
+				"Largest contig", "NG25", "NG50", "NG75", "LG80", "LG90", "LG99", "# N's per 100 kbp",
 				"GC (%)", "Genome fraction (%)", "Indels >= 5", "Inversions", "Relocation", "Translocation"
 		]
 	else:
@@ -242,10 +249,10 @@ def get_genome_eval_stat(src_dir):
 			if '.' not in value:
 				value = int(value)
 				if 'Kbp' in stats_name[i]:
-					value = value / 1000
+					value = value // 1000
 
 				if 'Mbp' in stats_name[i]:
-					value = value / 1000000
+					value = value // 1000000
 				value = '{:,}'.format(round(value, 1))
 			rows.append([stats_name[i], value])
 
@@ -405,7 +412,7 @@ def do_label_dis_bar(ax, align_array, aln_tool, label_array, thre):
 	above_pct = 1 - below_pct
 
 	ax.plot(1, 1, label='Above: {:.1%}'.format(above_pct), marker='', ls='')
-	ax.plot(1, 1, label='Below: {:.1%}'.format(below_pct), marker='', ls='')
+	ax.plot(1, 1, label='Below (PQ%): {:.1%}'.format(below_pct), marker='', ls='')
 	ax.set_ylim(-100, 100)
 	ax.set_xticks(np.arange(len(x_labels)))
 	ax.set_xticklabels(x_labels)
@@ -486,6 +493,29 @@ def do_label_dis_table(label_dis, src_dir, aln_tool_list, plot_figures):
 	plt.close()
 
 	#save_to_csv(flatten(label_dis, aln_tool_list), src_dir, aln_tool_list)
+
+
+def do_label_piechart(label_dis, src_dir, aln_tool_list, plot_figures):
+	labels = ['P', 'C', 'S', 'O', 'F', 'M', 'N']
+	fracs = [None] * len(labels)
+
+	fig = plt.figure(figsize=(15, 8))
+	ax_list = [None] * len(aln_tool_list)
+	for i, aln_tool in enumerate(aln_tool_list):
+		for j, label in enumerate(labels):
+			fracs[j] = label_dis[aln_tool][label] * 100
+
+		ax = fig.add_subplot(len(aln_tool_list) / 2, 2, i+1)
+		patches, texts, autotexts = ax.pie(fracs, labels=labels, autopct="%.1f%%", radius=0.8, pctdistance=1.25, labeldistance=1.05)
+		patches[0].set_edgecolor('white')
+		for text in texts:
+			text.set_fontsize(15)
+		title = aln_tool + ' (local)' if aln_tool == 'bwa-mem' else aln_tool + ' (end2end)'
+		ax.set_title(title)
+
+	fig.savefig('{}/images/piechart.png'.format(src_dir))
+	plot_figures.append(fig)
+	plt.close()
 
 
 def do_nm(align_array, label_array):

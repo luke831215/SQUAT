@@ -90,9 +90,9 @@
   }
 
   div.summary {
-  width: 18em;
+  width: 17%;
   position: relative;
-  top: 5em;
+  top: 12%;
   font-family: sans-serif;   
   left: 0;
   }
@@ -104,12 +104,12 @@
     overflow:auto;
     height:auto;
     width:auto;
-    top:4.5em;
-    bottom:2.3em;
-    left:18em;
+    top:7%;
+    bottom:0;
+    left:17%;
     right:0;
     border-left: 1px solid #CCC;
-    padding:0 0 0 1em;
+    /*padding:0 0 0 1em;*/
     background-color: white;
     z-index:1;
   }
@@ -262,7 +262,7 @@
 
   td.a:hover { background-color:#ccc; }
 
-  #label-dis-barchart {
+  #label-dis-barchart, #label-dis-piechart {
     /*width: 80%;*/
     text-align: center;
 
@@ -279,8 +279,8 @@
   font-size: 15px;
   color: black;
   font-weight: 700;
-  padding-left: 12%;
-  padding: .5em 2em;
+  /*padding-left: 12%;
+  padding: .5em 2em;*/
   background: #ccc;
 }
 
@@ -343,7 +343,7 @@
 
 .label-des-table, .threshold-table {
   width: 100%;
-  margin-top: 30%;
+  margin-top: 20%;
 }
 
 .label-des-table, .label-des-table td, .threshold-table, .threshold-table td {
@@ -386,16 +386,21 @@
   background-color: #555;
 }
 
-.gen-eval-table, .seq-info{
+.gen-eval-table, .seq-info {
   width: 40%;
   margin: 0;
-  display: inline-block;
-  vertical-align: center;
+  /*display: inline-block;*/
+  vertical-align: middle;
+}
+
+.seq-info {
+  margin-bottom: 5%;
 }
 
 .gen-eval-table td, .gen-eval-table th, .seq-info td, .seq-info th {
     border: 1px solid #999;
     padding: 8px;
+    text-align: left;
 }
 
 .gen-eval-table tr:nth-child(odd), .seq-info tr:nth-child(odd) {
@@ -619,6 +624,9 @@
         </table>
       </div>
       
+      <div id="label-dis-piechart">
+      </div>
+
       <div id="label-dis-barchart">
         <h2 class="plot-name">
           Label Distribution Barchart
