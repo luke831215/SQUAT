@@ -36,7 +36,7 @@ UTILDIR="${SRCRDIR}/libs/map_proc/utils"
 
 function do_mkdir {
 	mkdir -p "${LOGSDIR}" &> /dev/null
-	mkdir -p "${DATADIR}" &> /dev/null
+	#mkdir -p "${DATADIR}" &> /dev/null
 	mkdir -p "${IDLSDIR}" &> /dev/null
 	mkdir -p "${IDXDIR}" &> /dev/null
 }
@@ -45,7 +45,7 @@ function do_clean {
 	echo "[clean]"
 	do_mkdir
 	rm -f "${LOGSDIR}/${RAW}"_* &> /dev/null
-	rm -f "${DATADIR}/${RAW}"_* &> /dev/null
+	#rm -f "${DATADIR}/${RAW}"_* &> /dev/null
 	rm -f "${IDLSDIR}/${RAW}"_* &> /dev/null
 	rm -f "${IDXSDIR}/${RAW}"_* &> /dev/null
 }
