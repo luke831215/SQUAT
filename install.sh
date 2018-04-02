@@ -4,6 +4,7 @@ set -e
 INSTDIR="$( cd "$(dirname "$0")" ; pwd)"
 
 cd ${INSTDIR}
+chmod 764 squat.sh
 
 if [ -d bwa ]; then
 	rm -r bwa

@@ -1,4 +1,5 @@
 # Usage
+---
 
 ## For impatient users,
 	./run.sh seq1 seq2 ... seqN
@@ -9,7 +10,7 @@ For paired-end reads, it is recommended to combine them into a single file. Othe
 
 ## Primary output
 
-SQUAT will generate an HTML index named after the sequencing dataset and a directory containing all the analysis information.
+SQUAT will generate an HTML index and a directory containing all the analysis information, both termed the same name as the sequencing reads file.
 
 `[output_dir]/[seq.html]`
 
@@ -40,10 +41,10 @@ SQUAT runs from the command line with the following options:
 **-g < path >**
 >Assembly file. The tool accepts assemblies or reference genomes in FASTA format. (Remove contigs with all Ns before use)
 
-**-t < int >** (or --thread < int >)  
+**-t < int > (or --thread < int >)** 
 >Number of threads to use. The default value is 1/3 of the number of CPUs of the current machine.
 
-**-k** (or --keep)  
+**-k (or --keep)**
 >Keep the sam file after each mapping experiment in `{output_dir}/{seq}/{aligner}`.
 
 **-s < str >**

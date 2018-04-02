@@ -1,8 +1,4 @@
 # SQUAT - a Sequencing Quality Assessment Tool for Data Assessments before and after Genome Assemblies
----
-
-## Introduction
----
 
 SQUAT stands for **Sequencing QUality Assessment Tool**. It allows users to examine if their sequencing reads are truly representative of the original specie based on data assessments before and after genome assemblies. 
 
@@ -13,7 +9,6 @@ Manual: [https://www.gitbook.com/book/luke831215/squat](https://www.gitbook.com/
 <br>
 
 ## Getting started
----
 
 ### Github installation
 
@@ -27,7 +22,7 @@ Manual: [https://www.gitbook.com/book/luke831215/squat](https://www.gitbook.com/
 
 ### Example data
 
-For trial purposes, we extract 25000 reads from the specie **Saccharomyces cerevisiae** and map them to the assembly. Run the following command to start. See [Usage](usage.md) and [Output](output.md) for more details.
+For trial purposes, we extract 25000 reads from the specie **Saccharomyces cerevisiae** and map them to the assembly. Run the following command to start. See [Usage](https://luke831215.gitbooks.io/squat/content/usage.html) and [Output](https://luke831215.gitbooks.io/squat/content/output.html) for more details.
 
 	./squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta
 
@@ -36,7 +31,7 @@ After finishing, open `SEQ.html` in example directory to begin.
 <br>
 
 ## Usage
----
+
 ### For impatient users,
 
 	./squat.sh seq1 seq2 ... seqN
@@ -62,12 +57,11 @@ A pre-assembly report based on quality scores
 
 A post-assembly report based on read mapping
 
-For details of the output directory structure, see [output section](output.md).
+For details of the output directory structure, see [output section](https://luke831215.gitbooks.io/squat/content/output.html).
 
 <br>
 
 ## Command Options
----
 
 SQUAT runs from the command line with the following options:  
 
@@ -83,7 +77,7 @@ SQUAT runs from the command line with the following options:
 **-g < path >**
 >Assembly file. The tool accepts assemblies or reference genomes in FASTA format. (Remove contigs with all Ns before use)
 
-**-t < int >** (or --thread < int >)  
+**-t < int > (or --thread < int >)**
 >Number of threads to use. The default value is 1/3 of the number of CPUs of the current machine.
 
 **-k (or --keep)**

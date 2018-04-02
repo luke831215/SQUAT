@@ -1,6 +1,5 @@
 # Read Labeling
-
-<br>
+---
 
 ## Summary
 

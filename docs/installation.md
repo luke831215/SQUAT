@@ -6,7 +6,7 @@
 - Matplotlib
 - Numpy
 
-## Github
+## Github installation
 
 The installation of SQUAT is very simple.  
 If you are getting a permission error during the installation, consider running with `sudo`, or create a virtual python environment.
@@ -21,9 +21,9 @@ Then, go to the SQUAT directory and execute the makefile.
 
 After the installation, start running the tool with **squat.sh**.
 
-## Example
+## Example data
 
-As example data, we extract 25000 reads from the specie **Saccharomyces cerevisiae** and its assembly. Run the following command to start using. See [Usage](usage.md) and [Output](output.md) for more details.
+For trial purposes, we extract 25000 reads from the specie **Saccharomyces cerevisiae** and its assembly. Run the following command to start using. See [Usage](usage.md) and [Output](output.md) for more details.
 
 	./squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta
 

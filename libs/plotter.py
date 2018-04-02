@@ -63,7 +63,7 @@ def save_to_html(out_dir, template_fpath, data, thre, aln_tool_list, label_distr
 		time_sec.string = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
 
 		#fill in thre table
-		names = ['Overall PM%', 'S ratio', 'C ratio', 'O ratio', 'N ratio']
+		names = ['Overall PM%', 'Type S', 'Type C', 'Type O', 'Type N']
 		thre_table = soup.find('table', **{"class": 'threshold-table'})
 		keys = list(thre.keys())
 		for i in range(len(names)):

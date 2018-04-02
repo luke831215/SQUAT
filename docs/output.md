@@ -1,6 +1,9 @@
 # Output
 
-Here we use the example data in SQUAT to demonstrate the output structure in hierarchical fashion:
+Here we use the [example data](installation.md#Example-data) in SQUAT to demonstrate the output structure in hierarchical fashion. Please execute the following commands first:
+
+	cd SQUAT
+	./squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta
 
 - Output directory: example
 - Dataset: SEQ

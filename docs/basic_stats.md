@@ -1,4 +1,5 @@
 # Basic Statistics
+--- 
 
 ## Summary
 The module collects basic information for the sequencing reads and evaluate the reference assemblies using [QUAST](http://quast.bioinf.spbau.ru/), a genome assembly evaluation tool.

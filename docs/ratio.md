@@ -1,6 +1,5 @@
 # Mismatch, Clip, and N Ratio
-
-<br>
+---
 
 ## Summary
 
@@ -52,3 +51,13 @@ If a read contains at least one 'N', we can also compute its N ratio as follows,
 	N Ratio = No. of N / read length
 
 Reads whose N ratio exceeds a specified threshold (default 10%) will be determined  poor quality.
+
+<br>
+
+| Threshold | Default value |
+|:-:|:-:|
+| Overall PM% | 20% |
+| S ratio | 20% |
+| C ratio | 30% |
+| O ratio | 10% |
+| N ratio | 10% |
