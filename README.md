@@ -36,7 +36,9 @@ After finishing, open `SEQ.html` in example directory to begin.
 
 	./squat.sh seq1 seq2 ... seqN
 			 -o <output_dir>  
-			 -r <ref_seq> 
+			 -r <genome_assembly> 
+
+Please specify the path of the sequencing reads and the assembly to which they are mapped.
 
 For paired-end reads, it is recommended to combine them into a single file. Otherwise, SQUAT also supports the input of multiple sequence files and generates multiple quality assessment reports in the same output directory.
 

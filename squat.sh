@@ -5,7 +5,7 @@ set -e
 
 usage()
 {
-    echo -e "SQUAT: Sequencing Quality Assessment Tool"
+    echo -e "SQUAT: a Sequencing Quality Assessment Tool"
     echo -e "Usage: $0 seq1 seq2 ...  seqN [-o <output_dir>] [-r <ref_asm>]\n"
     echo "Optional args:"
     echo "-t    --thread    <int>   Number of threads to use" 
