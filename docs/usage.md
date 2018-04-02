@@ -5,14 +5,22 @@
 			 -o <output_dir>  
 			 -r <ref_seq> 
 
-Map sequences to assemblies
+For paired-end reads, it is recommended to combine them into a single file. Otherwise, SQUAT also supports the input of multiple sequence files and generates multiple quality assessment reports.
 
-Map sequences to reference genomes
+## Primary output
+`[output_dir]/[seq.html]`
 
-## Output
-**[seq/] [seq.html]**
+SQUAT will generate an HTML index named after the sequencing dataset and a directory containing all the analysis information.
 
-SQUAT will generate an HTML report named after the sequencing dataset and a directory containing all the analysis information.
+`[output_dir]/[seq]/[pre-assembly_report.html]`
+
+A pre-assembly report based on quality scores
+
+`[output_dir]/[seq]/[post-assembly_report.html]`
+
+A post-assembly report based on read mapping
+
+For details of the output directory structure, see [output section](output.md).
 
 ## Command Options
 SQUAT runs from a command line with the following options:  
@@ -55,3 +63,6 @@ SQUAT runs from a command line with the following options:
 
 **--nt < float > (or --n_thre < float >)**
 > Threshold for reads containing N. Reads whose N ratio exceeds the threshold will be determined  poor quality, default 0.1.
+
+**--seed < int >**
+> The seed for random sampling, default 0.	

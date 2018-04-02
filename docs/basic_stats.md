@@ -16,7 +16,7 @@ The module collects basic information for the sequencing reads and evaluate the 
 
 <br>
 
-If GAGE mode is activated in QUAST, statistics such as NX and LX will be replaced by corrected NGX and LGX in the table.
-
 ### Assembly evaluation (GAGE mode)
+Note that if GAGE mode is activated in QUAST, statistics such as NX and LX will be replaced by NGX and LGX in the table.
+
 ![Assembly evaluation GAGE](imgs/assembly_eval_gage.png)

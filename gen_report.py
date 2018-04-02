@@ -283,9 +283,10 @@ if __name__ == '__main__':
 
 	#opt_parser_group.add_option('-o', dest='output_file', help='Output file name.', default = input + '_test/1M-reads.arff')
 	opt_parser_group.add_option('-o', dest='out_dir', help = 'output directory')
-	opt_parser_group.add_option('-i', dest='ecv_fpath', help = 'the path of read file')
+	opt_parser_group.add_option('-i', dest='ecv_fpath', help = 'Path of the read file')
+	opt_parser_group.add_option('-r', dest='ref_fpath', help = 'Path of the reference assembly')
 	opt_parser_group.add_option('-d', dest='data', help='name of read data')
-	opt_parser_group.add_option('-r', dest='sample_size', help = 'sample size, equals to read size if no random sampling')
+	opt_parser_group.add_option('-n', dest='sample_size', help = 'sample size, equals to read size if no random sampling')
 	opt_parser_group.add_option('-t', dest='total_size', help = 'the read size of the whole dataset')
 	opt_parser_group.add_option('-s', dest='subset', help = 'Return the subset of sequencing reads according to labels (in capitals, e.g. PSCO)', default = '')
 
@@ -295,7 +296,9 @@ if __name__ == '__main__':
 	if not options.out_dir:
 		opt_parser.error('Need to specify the output directory')
 	elif not options.ecv_fpath:
-		opt_parser.error('Need to specify the path of fastq file')
+		opt_parser.error('Need to specify path of the fastq reads file')
+	elif not options.ref_fpath:
+		opt_parser.error('Need to specify path of the fasta assembly file')
 	elif not options.data:
 		opt_parser.error('Need to specify name of the reads')
 	elif not options.sample_size:
@@ -303,7 +306,7 @@ if __name__ == '__main__':
 	elif not options.total_size:
 		opt_parser.error('Need to specify the read size')
 
-	out_dir, ecv_fpath, data, read_size, total_size = options.out_dir, options.ecv_fpath, options.data, options.sample_size, options.total_size
+	out_dir, ecv_fpath, data, read_size, total_size, ref_fpath = options.out_dir, options.ecv_fpath, options.data, options.sample_size, options.total_size, options.ref_fpath
 	src_dir = out_dir + '/' + data
 
 	#aln_tool_list = ['bwa-mem', 'bowtie2-local', 'bwa-backtrack', 'bowtie2-backtrack']
@@ -346,7 +349,7 @@ if __name__ == '__main__':
 	#Plot distribution graph in terms of NM, CR, AS
 	print("Plot label distribution graph")
 	for aln_tool in aln_tool_list:
-		dirname = "{0}/{1}/imgs".format(src_dir, aln_tool)
+		dirname = "{0}/{1}/plot".format(src_dir, aln_tool)
 		if not os.path.isdir(dirname):
 			os.makedirs(dirname)
 		else:
@@ -358,7 +361,7 @@ if __name__ == '__main__':
 
 	print('Plot genome evaluation table')
 	#draw genome evaluation table
-	genome_stats = plotter.get_genome_eval_stat(src_dir)
+	genome_stats = plotter.get_genome_eval_stat(src_dir, ref_fpath.split('/')[-1])
 	draw_genome_eval_table(genome_stats, src_dir, plot_figures)
 
 	print('Plot basic stats table')
@@ -368,11 +371,9 @@ if __name__ == '__main__':
 	#make report
 	print('Writing report')
 	all_pdf_fpath = src_dir+'/report.pdf'
-	all_html_fpath = '{0}/{1}.html'.format(out_dir, data)
-	#all_html_fpath = '{0}/{1}/post-assembly.html'.format(out_dir, data)
 	template_fpath = os.path.dirname(sys.argv[0])+'/template/template.html'
 	plotter.save_to_pdf(all_pdf_fpath, plot_figures)
-	plotter.save_to_html(all_html_fpath, template_fpath, data, thre, aln_tool_list, label_distribution, basic_stats, genome_stats)
+	plotter.save_to_html(out_dir, template_fpath, data, thre, aln_tool_list, label_distribution, basic_stats, genome_stats)
 
 	#output subset reads if specified
 	if options.subset != 'NONE':

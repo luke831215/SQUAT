@@ -100,7 +100,7 @@ if [[ $8 != "bowtie2Only" ]]; then
 	ln -s ${ECVLOC} . 2>&1 > /dev/null
 	ln -s ${REFLOC} scaffolds.fasta 2>&1 > /dev/null
 	bash ${SCRIPTDIR}/bwa_mem_v1.sh ${DATA} scaffolds auto ${SRCDIR} P ${MAXPROCESS} > /dev/null 2>&1
-	#rm ${DATA}.fastq scaffolds.fasta &> /dev/null
+	rm ${DATA}.fastq scaffolds.fasta &> /dev/null
 
 	#bwa-end to end
 	echo 'BWA - backtrack'
@@ -114,5 +114,5 @@ if [[ $8 != "bowtie2Only" ]]; then
 	ln -s ${ECVLOC} . 2>&1 > /dev/null
 	ln -s ${REFLOC} scaffolds.fasta 2>&1 > /dev/null
 	bash ${SCRIPTDIR}/bwa_backtrack_v4.sh ${DATA} scaffolds auto ${SRCDIR} P ${MAXPROCESS} 2>&1 > /dev/null
-	#rm ${DATA}.fastq scaffolds.fasta &> /dev/null
+	rm ${DATA}.fastq scaffolds.fasta &> /dev/null
 fi

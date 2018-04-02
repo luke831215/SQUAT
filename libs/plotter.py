@@ -49,10 +49,14 @@ def fill_in_label(stats, soup, template_fpath):
 			cell.string = stats[i][j]
 
 
-def save_to_html(all_html_fpath, template_fpath, data, thre, aln_tool_list, label_distribution, basic_stats, gen_stats):
+def save_to_html(out_dir, template_fpath, data, thre, aln_tool_list, label_distribution, basic_stats, gen_stats):
 	"""concat all figures into report.html by inserting figures into template.html"""
-	src_dir = os.path.dirname(all_html_fpath) + '/' + data
+	toc_fpath = '{}/toc.html'.format(os.path.dirname(template_fpath))
+	all_html_fpath = '{0}/{1}/post-assembly_report.html'.format(out_dir, data)
+	index_fpath = '{0}/{1}.html'.format(out_dir, data)
+	src_dir = os.path.dirname(all_html_fpath)
 	icon_dirpath = "{}/icons".format(os.path.dirname(template_fpath))
+
 	with open(template_fpath) as file:
 		soup = BeautifulSoup(file, "lxml")
 		time_sec = soup.find('p', id='time')
@@ -155,7 +159,7 @@ def save_to_html(all_html_fpath, template_fpath, data, thre, aln_tool_list, labe
 			i += 1
 
 			cnt = 1
-			files = glob.glob('{0}/{1}/imgs/*.png'.format(src_dir, aln_tool))
+			files = glob.glob('{0}/{1}/plot/*.png'.format(src_dir, aln_tool))
 			files.sort(key=os.path.getmtime)
 			for img_fpath in files:
 				data_uri = base64.b64encode(open(img_fpath, 'rb').read()).decode('utf-8').replace('\n', '')
@@ -168,8 +172,18 @@ def save_to_html(all_html_fpath, template_fpath, data, thre, aln_tool_list, labe
 		#write report.html
 		with open(all_html_fpath, 'w') as w:
 			w.write(str(soup))
-		with open(src_dir + '/post-assembly_report.html', 'w') as w:
+
+	#fill in the href in toc.html
+	with open(toc_fpath) as file:
+		soup = BeautifulSoup(file, "lxml")
+		link = soup.find('a', id="post-assembly")
+		link['href'] = '{}/post-assembly_report.html'.format(data)
+		link = soup.find('a', id="pre-assembly")
+		link['href'] = '{}/pre-assembly_report.htm'.format(data)
+
+		with open(index_fpath, 'w') as w:
 			w.write(str(soup))
+
 
 def save_to_pdf(all_pdf_fpath, plot_figures):
 	"""concat all figures into report.pdf"""
@@ -190,7 +204,7 @@ def save_to_pdf(all_pdf_fpath, plot_figures):
 	plt.close('all')  # closing all open figures
 
 
-def get_genome_eval_stat(src_dir):
+def get_genome_eval_stat(src_dir, ref_name):
 	if os.path.isfile('{}/quast/gage_report.txt'.format(src_dir)):
 		GAGE = True
 		report_list = ['gage_report.txt', 'report.txt']
@@ -238,7 +252,7 @@ def get_genome_eval_stat(src_dir):
 				stats[name] = stat
 
 	#extract the wanted stats
-	rows = []
+	rows = [['File name', ref_name]]
 	for i in range(len(stats_name)):
 		if cor_stats_name[i] not in stats:
 			print(cor_stats_name[i]+' not found')
@@ -303,7 +317,7 @@ def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, 
 	else:
 		fig_name = 'aln_score_{}'.format(label)
 	#title = '{0} distribution of {1} reads {2}'.format(xlabel, label, aln_tool)
-	plt.savefig('{0}/{1}/imgs/{2}.png'.format(src_dir, aln_tool, fig_name))
+	plt.savefig('{0}/{1}/plot/{2}.png'.format(src_dir, aln_tool, fig_name))
 	plt.close()
 
 
@@ -606,8 +620,3 @@ def do_N(align_array, label_array):
 			cnt += 1
 
 	return n_list
-
-
-def regression_plot():
-	pass
-
