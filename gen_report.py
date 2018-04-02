@@ -1,4 +1,5 @@
 import sys
+import optparse
 import os
 import re
 import numpy as np 
@@ -277,7 +278,32 @@ def draw_basic_table(avg_poor_pct, fpath, src_dir, read_size, total_size, plot_f
 
 
 if __name__ == '__main__':
-	out_dir, ecv_fpath, data, read_size, total_size = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
+	opt_parser = optparse.OptionParser(usage='usage: %prog [options] \"args\"')
+	opt_parser_group = optparse.OptionGroup(opt_parser, "generate post-assembly report based on the output of SQUAT")
+
+	#opt_parser_group.add_option('-o', dest='output_file', help='Output file name.', default = input + '_test/1M-reads.arff')
+	opt_parser_group.add_option('-o', dest='out_dir', help = 'output directory')
+	opt_parser_group.add_option('-i', dest='ecv_fpath', help = 'the path of read file')
+	opt_parser_group.add_option('-d', dest='data', help='name of read data')
+	opt_parser_group.add_option('-r', dest='sample_size', help = 'sample size, equals to read size if no random sampling')
+	opt_parser_group.add_option('-t', dest='total_size', help = 'the read size of the whole dataset')
+	opt_parser_group.add_option('-s', dest='subset', help = 'Return the subset of sequencing reads according to labels (in capitals, e.g. PSCO)', default = '')
+
+	opt_parser.add_option_group(opt_parser_group)
+	(options, args) = opt_parser.parse_args()
+
+	if not options.out_dir:
+		opt_parser.error('Need to specify the output directory')
+	elif not options.ecv_fpath:
+		opt_parser.error('Need to specify the path of fastq file')
+	elif not options.data:
+		opt_parser.error('Need to specify name of the reads')
+	elif not options.sample_size:
+		opt_parser.error('Need to specify the sample size')
+	elif not options.total_size:
+		opt_parser.error('Need to specify the read size')
+
+	out_dir, ecv_fpath, data, read_size, total_size = options.out_dir, options.ecv_fpath, options.data, options.sample_size, options.total_size
 	src_dir = out_dir + '/' + data
 
 	#aln_tool_list = ['bwa-mem', 'bowtie2-local', 'bwa-backtrack', 'bowtie2-backtrack']
@@ -349,7 +375,7 @@ if __name__ == '__main__':
 	plotter.save_to_html(all_html_fpath, template_fpath, data, thre, aln_tool_list, label_distribution, basic_stats, genome_stats)
 
 	#output subset reads if specified
-	if len(sys.argv) == 7:
+	if options.subset != 'NONE':
 		print("Building subset")
 		dirname='{}/subset'.format(src_dir)
 		if not os.path.isdir(dirname):

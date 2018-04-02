@@ -6,15 +6,15 @@ set -e
 usage()
 {
     echo -e "SQUAT: Sequencing Quality Assessment Tool"
-    echo -e "Usage: $0 seq1 seq2 ...  seqN [-o <output_dir>] [-r <ref_seq>]\n"
+    echo -e "Usage: $0 seq1 seq2 ...  seqN [-o <output_dir>] [-r <ref_asm>]\n"
     echo "Optional args:"
     echo "-t    --thread    <int>   Number of threads to use" 
     echo "-k    --keep  Don't flush The sam file after alignment" 
-    echo "-s    --subset    <str>   Return the subset of sequencing reads according to the labels (in capitals, e.g. PSCO)" 
+    echo "-s    --subset    <str>   Return the subset of sequencing reads according to labels (in capitals, e.g. PSCO)" 
     echo "-g   <str>   Path to the reference genome file for GAGE benchmark tool" 
     echo "--gage    Activate gage mode, must specify reference genome (-g)"
     echo "--sample-size    the read size for random sampling, default 1M"
-    echo "--all    No random sampling, take the whole read file as input"
+    echo "--all    Deactivate random sampling, take the whole read file as input"
     echo "-c   <float>   The threshold for overall sequencing quality" 
     echo "--mt   --mismatch-thre <float>    Threshold for reads with substitution errors. Above threshold = poor quality reads, default 0.2"  
     echo "--ct   --clip-thre    <float>   Threshold for reads containing clips. Above threshold = poor quality reads, default 0.3"  
@@ -66,6 +66,7 @@ fi
 MAXPROC=$(($(grep -c ^processor /proc/cpuinfo)/3))
 KEEP_SAM=NO
 NUM_SAMPLE=1000000
+SUBSET=NONE
 FULLSET=NO
 CRITERIA=0.2
 NM_THRE=0.2
@@ -245,7 +246,7 @@ function do_squat {
     echo "Generate post-assembly reports"
     mkdir -p ${SEQDIR}/subset &> /dev/null
     mkdir -p ${SEQDIR}/images &> /dev/null
-    python ${EXECDIR}/gen_report.py ${OUTDIR} ${ECVLOC} ${DATA} ${NUM_SAMPLE} ${READSIZE} ${SUBSET}
+    python ${EXECDIR}/gen_report.py -o ${OUTDIR} -i ${ECVLOC} -d ${DATA} -r ${NUM_SAMPLE} -t ${READSIZE} -s ${SUBSET}
     cp ${EXECDIR}/template/toc.html ${SEQDIR}/index.html
 
     #flush sam files
