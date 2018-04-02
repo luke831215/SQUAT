@@ -239,13 +239,14 @@ function do_squat {
 
     #pre-Q report
     echo "Generate pre-assembly reports"
-    ${EXECDIR}/libs/preQ/readQdist ${ECVLOC} ${SEQDIR}/qc_report 2>&1 > /dev/null
+    ${EXECDIR}/libs/preQ/readQdist ${ECVLOC} ${SEQDIR}/pre-assembly_report 2>&1 > /dev/null
     
     #analysis modules
     echo "Generate post-assembly reports"
     mkdir -p ${SEQDIR}/subset &> /dev/null
     mkdir -p ${SEQDIR}/images &> /dev/null
-    python ${EXECDIR}/analysis.py ${OUTDIR} ${ECVLOC} ${DATA} ${NUM_SAMPLE} ${READSIZE} ${SUBSET}
+    python ${EXECDIR}/gen_report.py ${OUTDIR} ${ECVLOC} ${DATA} ${NUM_SAMPLE} ${READSIZE} ${SUBSET}
+    cp ${EXECDIR}/template/toc.html ${SEQDIR}/index.html
 
     #flush sam files
     if [ "$KEEP_SAM" == "NO" ]; then

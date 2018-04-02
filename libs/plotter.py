@@ -59,7 +59,7 @@ def save_to_html(all_html_fpath, template_fpath, data, thre, aln_tool_list, labe
 		time_sec.string = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
 
 		#fill in thre table
-		names = ['Overall PQ%', 'S ratio', 'C ratio', 'O ratio', 'N ratio']
+		names = ['Overall PM%', 'S ratio', 'C ratio', 'O ratio', 'N ratio']
 		thre_table = soup.find('table', **{"class": 'threshold-table'})
 		keys = list(thre.keys())
 		for i in range(len(names)):
@@ -80,19 +80,19 @@ def save_to_html(all_html_fpath, template_fpath, data, thre, aln_tool_list, labe
 		#Overall review depends on avg. poor ratio
 		poor_ratio = None
 		for row in basic_stats:
-			if row[0] == "Avg. sequence% labeled as poor quality":
+			if row[0] == "Avg. poorly mapped sequence%":
 				poor_ratio = float(row[1].strip('%'))/100
 				break
 
 		#poor_ratio = float(basic_stats[3][1].strip('%'))/100
-		if poor_ratio < thre['PQ']:
+		if poor_ratio < thre['PM']:
 			span_class = ["result"]
-			review = "Percentage of poor quality sequencing reads: {:.1%}".format(poor_ratio)
+			review = "Percentage of poorly-mapped reads: {:.1%}".format(poor_ratio)
 			icon_fpath = '{}/check.png'.format(icon_dirpath)
 
 		else:
 			span_class = ["result", "far", "fa-times-circle"]
-			review = "Percentage of poor quality sequencing reads: {:.1%}".format(poor_ratio)
+			review = "Percentage of poorly-mapped reads: {:.1%}".format(poor_ratio)
 			icon_fpath = '{}/cross.png'.format(icon_dirpath)
 
 		result = main.find('span', class_="result")
@@ -168,7 +168,7 @@ def save_to_html(all_html_fpath, template_fpath, data, thre, aln_tool_list, labe
 		#write report.html
 		with open(all_html_fpath, 'w') as w:
 			w.write(str(soup))
-		with open(src_dir + '/report.html', 'w') as w:
+		with open(src_dir + '/post-assembly_report.html', 'w') as w:
 			w.write(str(soup))
 
 def save_to_pdf(all_pdf_fpath, plot_figures):
@@ -277,8 +277,8 @@ def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, 
 		ax.axvline(thre, color='red', zorder=20)
 		ratio_good = np.sum(data < thre) / num_read if num_read else 0
 		ratio_bad = 1 - ratio_good
-		ax.plot(1, 1, label='Below threshold (high quality): {:.1%}'.format(ratio_good), marker='', ls='')
-		ax.plot(1, 1, label='Above threshold (poor quality): {:.1%}'.format(ratio_bad), marker='', ls='')
+		ax.plot(1, 1, label='Below threshold (eligible): {:.1%}'.format(ratio_good), marker='', ls='')
+		ax.plot(1, 1, label='Above threshold (poor): {:.1%}'.format(ratio_bad), marker='', ls='')
 
 		#zoom in the graph if necessary
 		if np.max(data) < 0.5:
@@ -412,7 +412,7 @@ def do_label_dis_bar(ax, align_array, aln_tool, label_array, thre):
 	above_pct = 1 - below_pct
 
 	ax.plot(1, 1, label='Above: {:.1%}'.format(above_pct), marker='', ls='')
-	ax.plot(1, 1, label='Below (PQ%): {:.1%}'.format(below_pct), marker='', ls='')
+	ax.plot(1, 1, label='Below (PM%): {:.1%}'.format(below_pct), marker='', ls='')
 	ax.set_ylim(-100, 100)
 	ax.set_xticks(np.arange(len(x_labels)))
 	ax.set_xticklabels(x_labels)

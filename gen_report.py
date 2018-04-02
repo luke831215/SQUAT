@@ -149,9 +149,9 @@ def draw_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot
 		ax.set_ylim([ymin - 10, ymax + 10])
 	
 	#add footnote under the barplot
-	footnote = ("1. Bar above the x-axis: portion of reads with high quality"
+	footnote = ("1. Bar above the x-axis: portion of properly-mapped reads"
 				"\n"
-				"2. Bar below the x-axis: portion of reads with poor quality"
+				"2. Bar below the x-axis: portion of poorly-mapped reads"
 				)
 	plt.figtext(0.1, 0.05, footnote, va="bottom", ha="left")
 	fig.savefig('{}/images/label_dis_bar.png'.format(src_dir))
@@ -251,7 +251,7 @@ def draw_basic_table(avg_poor_pct, fpath, src_dir, read_size, total_size, plot_f
 			["File name", seq_name], ["No. of sequence", '{:,}'.format(total_size)],
 			["Sample size", '{:,}'.format(read_size)],
 			["Sequence length", "{0} - {1}".format(len_min, len_max)],
-			["Avg. sequence% labeled as poor quality", avg_poor_pct],
+			["Avg. poorly mapped sequence%", avg_poor_pct],
 			["GC%", seq_gc]
 			]
 	fig = plt.figure(figsize=(15, 10))
@@ -290,7 +290,7 @@ if __name__ == '__main__':
 	#table_figures = []
 
 	with open(out_dir + '/config') as infile:
-		thre['PQ'] = float(infile.readline().split(':')[1].strip())
+		thre['PM'] = float(infile.readline().split(':')[1].strip())
 		thre['MR'] = float(infile.readline().split(':')[1].strip())
 		thre['CR'] = float(infile.readline().split(':')[1].strip())
 		thre['OR'] = float(infile.readline().split(':')[1].strip())
@@ -343,6 +343,7 @@ if __name__ == '__main__':
 	print('Writing report')
 	all_pdf_fpath = src_dir+'/report.pdf'
 	all_html_fpath = '{0}/{1}.html'.format(out_dir, data)
+	#all_html_fpath = '{0}/{1}/post-assembly.html'.format(out_dir, data)
 	template_fpath = os.path.dirname(sys.argv[0])+'/template/template.html'
 	plotter.save_to_pdf(all_pdf_fpath, plot_figures)
 	plotter.save_to_html(all_html_fpath, template_fpath, data, thre, aln_tool_list, label_distribution, basic_stats, genome_stats)
