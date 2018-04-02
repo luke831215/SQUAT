@@ -367,7 +367,6 @@ def do_label_dis_bar(ax, align_array, aln_tool, label_array, thre):
 	read_size = len(align_array)
 	patch_handles = {}
 	#x_labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N'] if 'backtrack' not in aln_tool else ['P', 'S', 'O', 'M', 'F', 'N']
-	x_labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N']
 	idx = 0
 	below_cnt = 0
 	ymax, ymin = 0, 0
@@ -428,8 +427,8 @@ def do_label_dis_bar(ax, align_array, aln_tool, label_array, thre):
 	ax.plot(1, 1, label='Above: {:.1%}'.format(above_pct), marker='', ls='')
 	ax.plot(1, 1, label='Below (PM%): {:.1%}'.format(below_pct), marker='', ls='')
 	ax.set_ylim(-100, 100)
-	ax.set_xticks(np.arange(len(x_labels)))
-	ax.set_xticklabels(x_labels)
+	ax.set_xticks(np.arange(len(labels)))
+	ax.set_xticklabels(labels)
 	ax.set_ylabel('Percentage')
 	ax.legend(loc=1, prop={'size': 10}, frameon=False)
 	title = aln_tool + ' (local)' if aln_tool == 'bwa-mem' else aln_tool + ' (end2end)'

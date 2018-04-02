@@ -8,4 +8,3 @@ It goes on to manipulate various analysis modules to get to the nitty-gritty, li
 - [Read Labeling](read_labeling.md)
 - [Mismatch, Clip, and N Ratio](ratio.md)
 - [Alignment Score](aln_score.md)
-- [Quality Score](pre_qc.md)

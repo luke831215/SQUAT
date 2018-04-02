@@ -1,4 +1,5 @@
 # Installation
+---
 
 ## Dependency
 - Python3
@@ -24,6 +25,6 @@ After the installation, start running the tool with **squat.sh**.
 
 As example data, we extract 25000 reads from the specie **Saccharomyces cerevisiae** and its assembly. Run the following command to start using. See [Usage](usage.md) and [Output](output.md) for more details.
 
-	bash squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta
+	./squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta
 
 After finishing, open `SEQ.html` in example directory to begin.

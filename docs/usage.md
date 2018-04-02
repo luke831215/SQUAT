@@ -5,12 +5,15 @@
 			 -o <output_dir>  
 			 -r <ref_seq> 
 
-For paired-end reads, it is recommended to combine them into a single file. Otherwise, SQUAT also supports the input of multiple sequence files and generates multiple quality assessment reports.
+For paired-end reads, it is recommended to combine them into a single file. Otherwise, SQUAT also supports the input of multiple sequence files and generates multiple quality assessment reports in the same directory.
 
 ## Primary output
-`[output_dir]/[seq.html]`
 
 SQUAT will generate an HTML index named after the sequencing dataset and a directory containing all the analysis information.
+
+`[output_dir]/[seq.html]`
+
+The table of content to link to other reports. (Index page)
 
 `[output_dir]/[seq]/[pre-assembly_report.html]`
 
@@ -23,7 +26,10 @@ A post-assembly report based on read mapping
 For details of the output directory structure, see [output section](output.md).
 
 ## Command Options
-SQUAT runs from a command line with the following options:  
+SQUAT runs from the command line with the following options:  
+
+**-h (or --help)**
+> Display the complete command options on screen.
 
 **-o < path >**
 > The path to output directory.
