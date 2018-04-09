@@ -5,6 +5,7 @@
 - Python3
 - Matplotlib
 - Numpy
+- Beautiful Soup
 
 ## Github installation
 

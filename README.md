@@ -19,6 +19,7 @@ Manual: [https://www.gitbook.com/book/luke831215/squat](https://www.gitbook.com/
 - Python3
 - Matplotlib
 - Numpy
+- Beautiful Soup
 
 ### Example data
 
