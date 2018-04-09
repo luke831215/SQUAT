@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pickle
 import shutil
 
-from libs import plotter
+from library import plotter
 from importlib import reload
 
 def build_subset(subset_label, label_list, in_fpath, out_fpath):

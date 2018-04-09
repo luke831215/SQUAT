@@ -211,7 +211,7 @@ function do_squat {
     touch ${SEQDIR}/${DATA}.log
     echo "Start examining ${DATA}" | tee -a ${SEQDIR}/${DATA}.log
 
-    echo "Calculate number of reads"  | tee -a ${SEQDIR}/${DATA}.log
+    #echo "Calculate number of reads"  | tee -a ${SEQDIR}/${DATA}.log
     if [ "$FULLSET" == "YES" ]; then
         READSIZE=$( change_id ${ECVLOC} ${ORGECV} ${DATA} )
         NUM_SAMPLE=${READSIZE}
@@ -223,25 +223,25 @@ function do_squat {
             echo "No. of reads: ${NUM_SAMPLE}" | tee -a ${SEQDIR}/${DATA}.log
         else
             echo "sampling ${NUM_SAMPLE} out of ${READSIZE} records" | tee -a  ${SEQDIR}/${DATA}.log
-            python ${EXECDIR}/libs/rand_sample.py ${ECVLOC} ${ORGECV} ${READSIZE} ${NUM_SAMPLE} ${SEED}
+            python3 ${EXECDIR}/library/rand_sample.py ${ECVLOC} ${ORGECV} ${READSIZE} ${NUM_SAMPLE} ${SEED}
         fi
     fi
 
     #map reads to genome using alignment tools
     echo "BWA read mapping" | tee -a ${SEQDIR}/${DATA}.log
-    bash ${EXECDIR}/libs/run_mapping.sh ${EXECDIR} ${SEQDIR} ${DATA} ${READSIZE} ${REFLOC} ${ECVLOC} ${MAXPROC} | tee -a ${SEQDIR}/${DATA}.log
+    bash ${EXECDIR}/library/run_mapping.sh ${EXECDIR} ${SEQDIR} ${DATA} ${READSIZE} ${REFLOC} ${ECVLOC} ${MAXPROC} | tee -a ${SEQDIR}/${DATA}.log
 
     #quast evaluation
     echo "Evaluate genome assemblies" | tee -a ${SEQDIR}/${DATA}.log
     if [[ -z "$GAGELOC" && -z "$GAGE" ]]; then
-        python ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} 2>&1 > /dev/null
+        python3 ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} 2>&1 > /dev/null
     else
-        python ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} -R ${GAGELOC} --gage 2>&1 > /dev/null 
+        python3 ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} -R ${GAGELOC} --gage 2>&1 > /dev/null 
     fi
 
     #pre-Q report
     echo "Generate pre-assembly reports" | tee -a ${SEQDIR}/${DATA}.log
-    ${EXECDIR}/libs/preQ/readQdist ${ECVLOC} ${SEQDIR}/pre-assembly_report 2>&1 > /dev/null
+    ${EXECDIR}/library/preQ/readQdist ${ECVLOC} ${SEQDIR}/pre-assembly_report 2>&1 > /dev/null
     
     #analysis modules
     echo "Generate post-assembly reports" | tee -a ${SEQDIR}/${DATA}.log
@@ -249,7 +249,7 @@ function do_squat {
         mkdir -p ${SEQDIR}/subset &> /dev/null
     fi
     mkdir -p ${SEQDIR}/images &> /dev/null
-    python ${EXECDIR}/gen_report.py -o ${OUTDIR} -i ${ECVLOC} -d ${DATA} -n ${NUM_SAMPLE} -t ${READSIZE} -s ${SUBSET} -r ${REFLOC} | tee -a ${SEQDIR}/${DATA}.log
+    python3 ${EXECDIR}/gen_report.py -o ${OUTDIR} -i ${ECVLOC} -d ${DATA} -n ${NUM_SAMPLE} -t ${READSIZE} -s ${SUBSET} -r ${REFLOC} | tee -a ${SEQDIR}/${DATA}.log
 
     #flush sam files
     if [ "$KEEP_SAM" == "NO" ]; then
