@@ -341,7 +341,7 @@ if __name__ == '__main__':
 			align_info_dict[aln_tool] = pickle.load(open(path, 'rb'))
 		except:
 			align_info_dict[aln_tool] = extract_sam_info_primary(data, read_size, sam_file)
-			pickle.dump(align_info_dict[aln_tool], open(path, 'wb'))
+			#pickle.dump(align_info_dict[aln_tool], open(path, 'wb'))
 
 	#save label distribution bar and return cigar information
 	cigar_dict, avg_poor_pct = draw_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_figures)

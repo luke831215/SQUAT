@@ -58,6 +58,12 @@ SQUAT runs from the command line with the following options:
 **--gage**
 >Activate gage mode for assembly evaluation, must specify reference genome (-g).
 
+**--sample-size < int >**
+>Specify the read size for random sampling, default 1M
+
+**--all**
+>Deactivate random sampling, take the whole read file as input.
+
 **-c < float >**
 > Threshold for overall sequencing quality. Sequencing datasets whose percentage of poor quality reads exceeding the threshold will be determined poor quality and fail the assessment, default 0.2.
 
@@ -75,3 +81,6 @@ SQUAT runs from the command line with the following options:
 
 **--seed < int >**
 > The seed for random sampling, default 0.	
+
+**--compressed**
+> Compress all the reports into a zip file, not recommended when --all is activated	

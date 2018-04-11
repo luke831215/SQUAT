@@ -4,11 +4,12 @@
 Here we use the [example data](installation.md#example-data) in SQUAT to demonstrate the output structure in hierarchical fashion. Please execute the following commands first:
 
 	cd SQUAT
-	./squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta
-
+	./squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta --compressed
+	unzip -d example/ example/SEQ.zip
+	
 - Output directory: example
-- Dataset: SEQ
-- Assembly: ASSEMBLY
+- Dataset: SEQ.fastq
+- Assembly: ASSEMBLY.fasta
 
 ```bash
 example/
@@ -27,13 +28,17 @@ example/
 │   │
 │   ├── SEQ.ids //file to record the original and correspondent id   
 │   │
-│   ├── post-assembly_report.html //HTML report based on mapping reads to assemblies (read mapping)
-│   │
-│   ├── pre-assembly_report.htm //HTML report based on quality scores before genome assembly
-│   │
-│   ├── report.pdf //Post-assembly report in PDF version
-│   │
 │   ├── SEQ.log //log file of the whole SEQ quality assessment process
+│   │
+│   ├── post_report.html //HTML report based on mapping reads to assemblies (read mapping)
+│   │
+│   ├── post_report.pdf //Post-assembly report in PDF version
+│   │
+│   ├── pre_report.htm //HTML report based on quality scores before genome assembly
+│   │
+│   ├── link //css and js files linked to pre-assembly_report.htm
+│   │   │
+│   │   └── ...
 │   │
 │   ├── bwa-mem //The mapping algorithms which performs local alignment
 │   │   │

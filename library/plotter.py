@@ -52,7 +52,7 @@ def fill_in_label(stats, soup, template_fpath):
 def save_to_html(out_dir, template_fpath, data, thre, aln_tool_list, label_distribution, basic_stats, gen_stats):
 	"""concat all figures into report.html by inserting figures into template.html"""
 	toc_fpath = '{}/toc.html'.format(os.path.dirname(template_fpath))
-	all_html_fpath = '{0}/{1}/post-assembly_report.html'.format(out_dir, data)
+	all_html_fpath = '{0}/{1}/post_report.html'.format(out_dir, data)
 	index_fpath = '{0}/{1}.html'.format(out_dir, data)
 	src_dir = os.path.dirname(all_html_fpath)
 	icon_dirpath = "{}/icons".format(os.path.dirname(template_fpath))
@@ -177,9 +177,9 @@ def save_to_html(out_dir, template_fpath, data, thre, aln_tool_list, label_distr
 	with open(toc_fpath) as file:
 		soup = BeautifulSoup(file, "lxml")
 		link = soup.find('a', id="post-assembly")
-		link['href'] = '{}/post-assembly_report.html'.format(data)
+		link['href'] = '{}/post_report.html'.format(data)
 		link = soup.find('a', id="pre-assembly")
-		link['href'] = '{}/pre-assembly_report.htm'.format(data)
+		link['href'] = '{}/pre_report.htm'.format(data)
 
 		with open(index_fpath, 'w') as w:
 			w.write(str(soup))

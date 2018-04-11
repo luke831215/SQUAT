@@ -16,16 +16,16 @@ Manual: [https://www.gitbook.com/book/luke831215/squat](https://www.gitbook.com/
 	cd SQUAT; make install
 
 ### Dependency
-- Python3
-- Matplotlib
-- Numpy
-- Beautiful Soup
+- [Python3](https://www.python.org/downloads/)
+- [Matplotlib](https://matplotlib.org/faq/installing_faq.html#python-org-python)
+- [Numpy](https://askubuntu.com/questions/765494/how-to-install-numpy-for-python3)
+- [Beautiful Soup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-beautiful-soup) 
 
 ### Example data
 
 For trial purposes, we extract 25000 reads from the specie **Saccharomyces cerevisiae** and map them to the assembly. Run the following command to start. See [Usage](https://luke831215.gitbooks.io/squat/content/usage.html) and [Output](https://luke831215.gitbooks.io/squat/content/output.html) for more details.
 
-	./squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta
+	./squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta --compressed
 
 After finishing, open `SEQ.html` in example directory to begin.
 

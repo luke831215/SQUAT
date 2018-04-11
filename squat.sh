@@ -13,7 +13,7 @@ usage()
     echo "-s    --subset    <str>   Return the subset of sequencing reads according to labels (in capitals, e.g. PSCO)" 
     echo "-g   <str>   Path to the reference genome file for GAGE benchmark tool" 
     echo "--gage    Activate gage mode, must specify reference genome (-g)"
-    echo "--sample-size    the read size for random sampling, default 1M"
+    echo "--sample-size <int>    the read size for random sampling, default 1M"
     echo "--all    Deactivate random sampling, take the whole read file as input"
     echo "-c   <float>   The threshold for overall sequencing quality" 
     echo "--mt   --mismatch-thre <float>    Threshold for reads with substitution errors. Above threshold = poor quality reads, default 0.2"  
@@ -21,7 +21,7 @@ usage()
     echo "--ot   --others-thre    <float>   Threshold for reads with other errors. Above threshold = poor quality reads, default 0.1" 
     echo "--nt   --n-thre   <float>   Threshold for reads containing N. Above threshold = poor quality reads, default 0.1" 
     echo "--seed   <int>   Specify the seed for random sampling, default 0" 
-    #echo "--noextract    Don't extract the zip file containing the report information"
+    echo "--compressed    Compress into a zip file, not recommended when --all is activated"
 }
 
 function change_id {
@@ -74,6 +74,7 @@ CR_THRE=0.3
 O_THRE=0.1
 N_THRE=0.1
 SEED=0
+COMPRESS=NO
 
 SEQ_LIST=()
 NUM_SEQ=0
@@ -170,6 +171,10 @@ case $key in
     shift # past argument
     shift # past argument
     ;;
+    --compressed)
+    COMPRESS=YES
+    shift # past argument
+    ;;
     *)    # unknown option
     echo "Unknown option: "$1 >&2
     exit 1
@@ -241,7 +246,8 @@ function do_squat {
 
     #pre-Q report
     echo "Generate pre-assembly reports" | tee -a ${SEQDIR}/${DATA}.log
-    ${EXECDIR}/library/preQ/readQdist ${ECVLOC} ${SEQDIR}/pre-assembly_report 2>&1 > /dev/null
+    ${EXECDIR}/library/preQ/readQdist ${ECVLOC} ${SEQDIR}/pre_report 2>&1 > /dev/null
+    cp -r ${EXECDIR}/library/preQ/link ${SEQDIR}/
     
     #analysis modules
     echo "Generate post-assembly reports" | tee -a ${SEQDIR}/${DATA}.log
@@ -259,6 +265,14 @@ function do_squat {
         done
     fi
 
+    
+
+    if [ "$COMPRESS" == "YES" ]; then
+        echo "Compress into zip"
+        cd ${OUTDIR}
+        zip ${DATA}.zip -r9 ${DATA} ${DATA}.html 2>&1 > /dev/null
+        rm -r ${DATA} ${DATA}.html &> /dev/null  
+    fi
 }
 
 for ((i=0;i<$NUM_SEQ;i++)); do
