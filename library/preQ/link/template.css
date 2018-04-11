@@ -1,0 +1,188 @@
+body {    
+
+}
+
+div.summary {
+  width: 18em;
+  position:fixed;
+  top: 3em;
+  margin:1em 0 0 0;
+  font-family: sans-serif;   
+  color: #800000;
+  left: 0;
+}
+
+div.main {
+  display:block;
+  position:absolute;
+  overflow:auto;
+  height:auto;
+  width:auto;
+  top:4.5em;
+  bottom:2.3em;
+  left:18em;
+  right:0;
+  border-left: 1px solid #CCC;
+  padding:0 0 0 1em;
+  background-color: white;
+  z-index:1;
+}
+
+div.header {
+  background-color: #098bd4;
+  border:0;
+  margin:0;
+  padding: 0.5em;
+  font-size: 200%;
+  font-weight: bold;
+  color: white;
+  position:fixed;
+  width:100%;
+  top:0;
+  left:0;
+  z-index:2;
+
+}
+
+a.hover {
+  text-decoration: none;
+}
+
+#header_title {
+display:inline-block;
+float:left;
+clear:left;
+}
+
+#header_filename {
+display:inline-block;
+float:right;
+clear:right;
+font-size: 50%;
+margin-right:2em;
+text-align: right;
+}
+
+img {
+  width: 90%;
+}
+
+#btpBtn {
+  background-color: #50A1CB; /* button color */
+  color: white; /* text/arrow color */ 
+  z-index: 999;
+  display: none;
+
+  /* float in bottom right corner */
+  /* 20 pixels from edge */
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  /* size of button is 50 pixels*/
+  width: 100px;
+  height: 100px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; 
+  /* round button */
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+  border-width: 0;
+  font-size: 1.5em;
+}
+
+#btpBtn:hover {
+ background-color: #50cbad;
+}
+
+.ac-row, .ac-label {
+  /**/
+  position: relative;
+  padding: .5em 1em;
+  display: block;
+  cursor: pointer;
+  transition: background-color .15s ease-in-out;
+  font-size: 15px;
+  color: black;
+  font-weight: 700;
+  /*padding-left: 12%;
+  padding: .5em 2em;*/
+  background: #ccc;
+}
+
+
+.ac-label:after, .ac-input:checked + .ac-label:after {
+  position: absolute;
+  display: block;
+  right: 0;
+  top: 0;
+  width: 2em;
+  height: 100%;
+  line-height: 2.25em;
+  text-align: center;
+  /*background-color: #e5e5e5;*/
+  transition: background-color .15s ease-in-out;
+}
+
+
+.ac-row:hover, .ac-label:hover {
+  background-color: #444;
+  color: white;
+}
+
+.ac-input:checked + .ac-label {
+  background-color: #444;
+  color: white; 
+}
+
+.ac-input:checked + .ac-label:after {
+  transform: rotate(180deg);
+}
+
+
+.ac-label:after{
+  content: "\25BC";
+}
+
+.ac-input {
+  display: none;
+}
+
+.ac-text {
+  opacity: 0;
+  height: 0;
+  transition: opacity .5s ease-in-out;
+  overflow: hidden;
+}
+
+.ac-input:checked ~ .ac-text{
+  opacity: 1;
+  height: auto;
+}
+
+.ac-input:checked ~ .ac-text > .ac-sub > .ac-row{
+  background-color: #999;
+}
+
+.panel {
+    padding: 0 18px;
+    display: none;
+    background-color: white;
+    overflow: hidden;
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+li a{
+  display:block;
+  text-decoration: none;
+}
+
+li a:hover:not(.active) {
+    background-color: #555;
+    color: white;
+}

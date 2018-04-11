@@ -1,0 +1,163 @@
+<html>
+<head>
+<title>Pre-assembly SQUAT report</title><script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<link rel="stylesheet" type="text/css" href="link/template.css">
+<script src="link/template.js"></script>
+</head>
+<body>
+<div class="header">
+  <div id="header_title">Pre-Assembly SQUAT Report</div>
+  <div id="header_filename">Tue Apr 10 17:40:11 2018
+</div>
+</div><div class="summary">
+  <h2 style="text-align: center">Summary</h2>
+<div class="ac"
+><input class="ac-input" id="ac-1" name="ac-1" type="checkbox" /
+><label class="ac-label" for="ac-1">Basic Statistics</label><article class="ac-text"><div class="ac-sub"><span class="ac-row" onclick="link('#Fs')">Attributes of FASTQ</span></div><div class="ac-sub"><span class="ac-row" onclick="link('#Fa')">Alphabet Frequency & GC content</span></div></article></div><div class="ac"
+><input class="ac-input" id="ac-2" name="ac-2" type="checkbox" /
+><label class="ac-label" for="ac-2">Quality Statistics</label><article class="ac-text"><div class="ac-sub"><span class="ac-row" onclick="link('#Fb')">Distribution of Bases' Quality Values</span></div><div class="ac-sub"><span class="ac-row" onclick="link('#Fm')">Distribution of Reads' MinimaQ Values</span></div><div class="ac-sub"><span class="ac-row" onclick="link('#Fd')">Covergae of Reads with Sufficient High-Quality Bases</span></div></article></div></div><div class="main" id="main" onscroll=scrollFunction()><button onclick="topFunction()" id="btpBtn" title="Go to top"><i class="up"></i>Top</button>  <div id=Fs>
+  <h3 style='color: darkblue;'>Attributes of FASTQ</h3>
+  <table border=1 width=60% style='margin-left:120px;'><tr align=center><th width=50%>Name</th><th>Value</th></tr>
+    <tr align=center><td>InputFile</td><td>SEQ.fastq</td></tr>
+    <tr align=center><td>#Read</td><td>25,000</td></tr>
+    <tr align=center><td>#Base</td><td>1,865,920</td></tr>
+    <tr align=center><td>AvgReadLen</td><td>74.64</td></tr>
+    <tr align=center><td>MinReadLen</td><td>27</td></tr>
+    <tr align=center><td>MaxReadLen</td><td>76</td></tr>
+  </table>
+  </div><br><br><br>
+  <div id=Fa>
+  <h3 style='color: darkblue;'>Alphabet Frequency & GC content</h3>
+  <table border=1 width=60% style='margin-left:120px;'><tr align=center><th>Name</th><th>Count</th><th>Freq%</th></tr>
+    <tr align=center><td>A</td><td>562,339</td><td>30.14%</td></tr>
+    <tr align=center><td>C</td><td>363,525</td><td>19.48%</td></tr>
+    <tr align=center><td>G</td><td>366,789</td><td>19.66%</td></tr>
+    <tr align=center><td>T</td><td>569,054</td><td>30.50%</td></tr>
+    <tr align=center><td>N</td><td>4,213</td><td>0.23%</td></tr>
+    <tr align=center><td>GC%</td><td>-</td><td>39.14%</td></tr>
+  </table>
+  <table border=0 width=80%>    <tr><td id=gc style='height: 300px'></td></tr>
+  </table>
+  </div><br><br><br>
+  <div id=Fb>
+  <h3 style='color: darkblue;'>Distribution of Bases' Quality Values</h3>
+  <table border=1 width=60% style='margin-left:120px;'><tr align=center><th width=50%>Name</th><th>AreaFreq</th></tr>
+    <tr align=center><td>Q30 & above</td><td>76.3%</td></tr>
+    <tr align=center><td>Q20-Q29</td><td>6.6%</td></tr>
+    <tr align=center><td>Q15-Q19</td><td>1.1%</td></tr>
+    <tr align=center><td>< Q15</td><td>16.0%</td></tr>
+  </table>
+
+  <table border=0 width=80%>  <tr><td id=bq style="height: 300px"></td></tr>
+  </table>
+  </div><br><br><br>
+  <div id=Fm>
+  <h3 style='color: darkblue;'>Distribution of Reads' MinimalQ Values</h3>
+  <table border=1 width=60% style='margin-left:120px;'><tr align=center><th width=50%>Name</th><th>AreaFreq</th></tr>
+    <tr align=center><td>% of reads whose bases are all Q20 & above</td><td>49.8%</td></tr>
+    <tr align=center><td>% of reads whose bases are all Q15 & above</td><td>57.8%</td></tr>
+    <tr align=center><td>% of reads whose bases are all Q10 & above</td><td>63.9%</td></tr>
+  </table>
+
+  <table border=0 width=80%>  <tr><td id=mq style="height: 300px"></td></tr>
+  </table>
+  </div><br><br><br>
+  <div id=Fd>
+  <h3 style='color: darkblue;'>Coverage of Reads with Sufficient High-Quality Bases</h3>
+  <table border=1 width=60% style='margin-left:120px;'><tr align=center><th width=50%>Name</th><th>Freq</th></tr>
+    <tr align=center><td>Coverage of reads that >=95% of bases with Q20 & above</td><td>67.4%</td></tr>
+    <tr align=center><td>Coverage of reads that >=95% of bases with Q15 & above</td><td>71.0%</td></tr>
+    <tr align=center><td>Coverage of reads that >=90% of bases with Q20 & above</td><td>72.4%</td></tr>
+    <tr align=center><td>Coverage of reads that >=90% of bases with Q15 & above</td><td>75.3%</td></tr>
+  </table>
+
+  <table border=0 width=80%>    <tr><td align=center><img src=link/HighQ.gif alt='%HighQ(q)' style='width: 400'></img></td></tr>
+    <tr><td id=hq style="height: 300px"></td></tr>
+  </table>
+  </div><br><br><br>
+</div><script type="text/javascript">
+function DrawDist() {
+  var opt1 = {
+    title: 'GC% of reads', hAxis: { title: 'GC%' }, vAxis: { title: 'Freq%', format: 'percent' }, colors: ['#a52714', '#097138']
+  };
+  var d1 = new google.visualization.DataTable();
+  d1.addColumn('number', 'GC%');
+  d1.addColumn('number', 'Freq');
+  d1.addRows( [ [0,0.00],[1,0.00],[2,0.00],[3,0.00],[4,0.00],[5,0.00],[6,0.00],[7,0.00],[8,0.00],[9,0.00],
+[10,0.00],[11,0.00],[12,0.00],[13,0.00],[14,0.00],[15,0.00],[16,0.00],[17,0.00],[18,0.00],[19,0.00],
+[20,0.00],[21,0.00],[22,0.00],[23,0.00],[24,0.01],[25,0.01],[26,0.01],[27,0.01],[28,0.02],[29,0.02],
+[30,0.02],[31,0.01],[32,0.04],[33,0.05],[34,0.04],[35,0.02],[36,0.06],[37,0.06],[38,0.05],[39,0.07],
+[40,0.02],[41,0.07],[42,0.05],[43,0.06],[44,0.02],[45,0.05],[46,0.03],[47,0.04],[48,0.01],[49,0.03],
+[50,0.02],[51,0.02],[52,0.00],[53,0.02],[54,0.01],[55,0.01],[56,0.00],[57,0.00],[58,0.00],[59,0.00],
+[60,0.00],[61,0.00],[62,0.00],[63,0.00],[64,0.00],[65,0.00],[66,0.00],[67,0.00],[68,0.00],[69,0.00],
+[70,0.00],[71,0.00],[72,0.00],[73,0.00],[74,0.00],[75,0.00],[76,0.00],[77,0.00],[78,0.00],[79,0.00],
+[80,0.00],[81,0.00],[82,0.00],[83,0.00],[84,0.00],[85,0.00],[86,0.00],[87,0.00],[88,0.00],[89,0.00],
+[90,0.00],[91,0.00],[92,0.00],[93,0.00],[94,0.00],[95,0.00],[96,0.00],[97,0.00],[98,0.00],[99,0.00],
+[100,0.00],  ] );
+  var chart1 = new google.visualization.LineChart(document.getElementById('gc'));
+  chart1.draw(d1, opt1);
+
+  var opt2 = {
+    title: 'Frequency of base quality values', hAxis: { title: 'Quality value' }, vAxis: { title: 'Freq%', format: 'percent' }, colors: ['#a52714', '#097138']
+  };
+  var d2 = new google.visualization.DataTable();
+  d2.addColumn('number', 'Quality value');
+  d2.addColumn('number', 'Freq');
+  d2.addRows( [ [0,0.000], [1,0.000], [2,0.150], [3,0.000], [4,0.000], [5,0.000], [6,0.001], [7,0.001], [8,0.001], [9,0.001], 
+[10,0.001], [11,0.001], [12,0.001], [13,0.001], [14,0.003], [15,0.003], [16,0.001], [17,0.001], [18,0.002], [19,0.002], 
+[20,0.003], [21,0.003], [22,0.003], [23,0.005], [24,0.005], [25,0.005], [26,0.007], [27,0.008], [28,0.010], [29,0.016], 
+[30,0.016], [31,0.044], [32,0.044], [33,0.084], [34,0.549], [35,0.026], [36,0.000], [37,0.000], [38,0.000], [39,0.000], 
+[40,0.000], [41,0.000],   ] );
+  var chart2 = new google.visualization.AreaChart(document.getElementById('bq'));
+  chart2.draw(d2, opt2);
+
+  var opt3 = {
+    title: 'MinimalQ distribution', hAxis: { title: 'MinmalQ value', viewWindow: { max: 41 } }, vAxis: { title: 'Freq%', format: 'percent' }, colors: ['#a52714', '#097138']
+  };
+  var d3 = new google.visualization.DataTable();
+  d3.addColumn('number', 'MinQ');
+  d3.addColumn('number', 'Freq');
+  d3.addRows( [ [0,0.000], [1,0.000], [2,0.289], [3,0.000], [4,0.000], [5,0.001], [6,0.016], [7,0.017], [8,0.018], [9,0.020], 
+[10,0.019], [11,0.009], [12,0.011], [13,0.012], [14,0.011], [15,0.019], [16,0.013], [17,0.013], [18,0.019], [19,0.015], 
+[20,0.022], [21,0.018], [22,0.013], [23,0.026], [24,0.025], [25,0.021], [26,0.040], [27,0.034], [28,0.055], [29,0.042], 
+[30,0.046], [31,0.088], [32,0.043], [33,0.021], [34,0.005], [35,0.000], [36,0.000], [37,0.000], [38,0.000], [39,0.000], 
+[40,0.000], [41,0.000],   ] );
+  var chart3 = new google.visualization.AreaChart(document.getElementById('mq'));
+  chart3.draw(d3, opt3);
+
+  var optH = {
+    title: 'Coverage of reads with %HighQ(q) >= X%', hAxis: { title: 'X% (X% from 100 downto 50)', direction: -1, viewWindow: { max: 100, min: 50 } }, vAxis: { title: 'Coverage%', format: 'percent' }, colors: ['#a52714', '#097138']
+  };
+  var dH = new google.visualization.DataTable();
+  dH.addColumn('number', 'X%');
+  dH.addColumn('number', 'q=15');
+  dH.addColumn('number', 'q=20');
+  dH.addRows( [ [100.0,0.578,0.498],[99.5,0.578,0.498],
+[99.0,0.578,0.498],[98.5,0.661,0.610],[98.0,0.662,0.611],[97.5,0.662,0.611],[97.0,0.694,0.652],[96.5,0.695,0.652],[96.0,0.708,0.672],[95.5,0.710,0.674],[95.0,0.710,0.674],[94.5,0.721,0.688],
+[94.0,0.722,0.689],[93.5,0.723,0.689],[93.0,0.732,0.700],[92.5,0.732,0.701],[92.0,0.742,0.712],[91.5,0.743,0.713],[91.0,0.744,0.713],[90.5,0.752,0.723],[90.0,0.753,0.724],[89.5,0.753,0.724],
+[89.0,0.758,0.731],[88.5,0.759,0.732],[88.0,0.764,0.739],[87.5,0.765,0.740],[87.0,0.765,0.740],[86.5,0.769,0.748],[86.0,0.770,0.749],[85.5,0.774,0.754],[85.0,0.777,0.756],[84.5,0.777,0.756],
+[84.0,0.781,0.761],[83.5,0.782,0.762],[83.0,0.783,0.763],[82.5,0.787,0.768],[82.0,0.787,0.768],[81.5,0.790,0.772],[81.0,0.791,0.773],[80.5,0.792,0.773],[80.0,0.795,0.778],[79.5,0.795,0.778],
+[79.0,0.795,0.778],[78.5,0.798,0.783],[78.0,0.799,0.783],[77.5,0.801,0.786],[77.0,0.802,0.787],[76.5,0.803,0.787],[76.0,0.806,0.790],[75.5,0.806,0.791],[75.0,0.808,0.793],[74.5,0.809,0.794],
+[74.0,0.809,0.794],[73.5,0.811,0.796],[73.0,0.811,0.797],[72.5,0.812,0.797],[72.0,0.815,0.801],[71.5,0.815,0.801],[71.0,0.817,0.803],[70.5,0.818,0.805],[70.0,0.818,0.805],[69.5,0.819,0.807],
+[69.0,0.820,0.808],[68.5,0.820,0.808],[68.0,0.822,0.811],[67.5,0.822,0.811],[67.0,0.823,0.813],[66.5,0.824,0.814],[66.0,0.825,0.814],[65.5,0.827,0.816],[65.0,0.827,0.817],[64.5,0.828,0.817],
+[64.0,0.830,0.820],[63.5,0.830,0.820],[63.0,0.831,0.822],[62.5,0.832,0.823],[62.0,0.832,0.824],[61.5,0.834,0.825],[61.0,0.835,0.826],[60.5,0.836,0.828],[60.0,0.837,0.828],[59.5,0.837,0.828],
+[59.0,0.838,0.830],[58.5,0.839,0.830],[58.0,0.839,0.830],[57.5,0.840,0.832],[57.0,0.840,0.833],[56.5,0.842,0.834],[56.0,0.842,0.835],[55.5,0.843,0.835],[55.0,0.843,0.836],[54.5,0.844,0.837],
+[54.0,0.844,0.837],[53.5,0.845,0.838],[53.0,0.845,0.839],[52.5,0.846,0.840],[52.0,0.846,0.840],[51.5,0.847,0.840],[51.0,0.848,0.842],[50.5,0.848,0.842],[50.0,0.849,0.843],[49.5,0.849,0.843],
+[49.0,0.850,0.844],[48.5,0.850,0.845],[48.0,0.851,0.846],[47.5,0.851,0.846],[47.0,0.852,0.847],[46.5,0.853,0.848],[46.0,0.854,0.849],[45.5,0.854,0.849],[45.0,0.854,0.850],[44.5,0.855,0.851],
+[44.0,0.855,0.851],[43.5,0.856,0.852],[43.0,0.856,0.852],[42.5,0.857,0.853],[42.0,0.858,0.854],[41.5,0.858,0.854],[41.0,0.858,0.855],[40.5,0.859,0.856],[40.0,0.860,0.856],[39.5,0.860,0.856],
+[39.0,0.861,0.857],[38.5,0.861,0.858],[38.0,0.862,0.858],[37.5,0.862,0.859],[37.0,0.862,0.859],[36.5,0.863,0.860],[36.0,0.863,0.860],[35.5,0.863,0.861],[35.0,0.864,0.861],[34.5,0.864,0.861],
+[34.0,0.864,0.862],[33.5,0.864,0.862],[33.0,0.864,0.862],[32.5,0.865,0.863],[32.0,0.865,0.863],[31.5,0.866,0.864],[31.0,0.866,0.864],[30.5,0.866,0.865],[30.0,0.867,0.865],[29.5,0.867,0.865],
+[29.0,0.867,0.866],[28.5,0.867,0.866],[28.0,0.868,0.867],[27.5,0.868,0.867],[27.0,0.869,0.867],[26.5,0.869,0.868],[26.0,0.871,0.870],[25.5,0.871,0.870],[25.0,0.875,0.873],[24.5,0.875,0.873],
+[24.0,0.876,0.874],[23.5,0.878,0.876],[23.0,0.878,0.876],[22.5,0.879,0.877],[22.0,0.879,0.878],[21.5,0.880,0.879],[21.0,0.882,0.881],[20.5,0.882,0.881],[20.0,0.888,0.886],[19.5,0.898,0.895],
+[19.0,0.898,0.896],[18.5,0.899,0.896],[18.0,0.901,0.899],[17.5,0.901,0.900],[17.0,0.903,0.901],[16.5,0.903,0.901],[16.0,0.904,0.902],[15.5,0.904,0.903],[15.0,0.905,0.903],[14.5,0.905,0.904],
+[14.0,0.906,0.904],[13.5,0.907,0.905],[13.0,0.911,0.909],[12.5,0.911,0.909],[12.0,0.912,0.910],[11.5,0.915,0.913],[11.0,0.915,0.913],[10.5,0.916,0.915],[10.0,0.916,0.915],[9.5,0.916,0.915],
+[9.0,0.918,0.916],[8.5,0.918,0.916],[8.0,0.918,0.917],[7.5,0.919,0.918],[7.0,0.919,0.918],[6.5,0.922,0.921],[6.0,0.922,0.922],[5.5,0.922,0.922],[5.0,0.924,0.924],[4.5,0.924,0.924],
+[4.0,0.924,0.924],[3.5,0.925,0.925],[3.0,0.925,0.925],[2.5,0.926,0.925],[2.0,0.926,0.925],[1.5,0.926,0.925],[1.0,0.926,0.926],[0.5,0.926,0.926],[0.0,1.000,1.000],  [0,1,1] ] );
+  var chartH = new google.visualization.LineChart(document.getElementById('hq'));
+  chartH.draw(dH, optH);
+
+}
+google.charts.load('current', {'packages': ['corechart', 'line']});
+google.charts.setOnLoadCallback(DrawDist);</script>
+</body>
+</html>
