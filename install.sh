@@ -35,8 +35,3 @@ cp ${INSTDIR}/library/quast_code/* ${INSTDIR}/quast/quast_libs
 echo "build files for generating pre-assembly quality report"
 cd ${INSTDIR}/library/preQ
 bash ${INSTDIR}/library/preQ/_build.sh
-
-#install python packages
-echo "install python packages"
-pip install beautifulsoup4
-pip install lxml
