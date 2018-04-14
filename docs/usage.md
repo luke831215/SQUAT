@@ -46,8 +46,8 @@ SQUAT runs from the command line with the following options:
 **-t < int > (or --thread < int >)** 
 >Number of threads to use. The default value is 1/3 of the number of CPUs of the current machine.
 
-**-k (or --keep)**
->Keep the sam file after each mapping experiment in `{output_dir}/{seq}/{aligner}`.
+**-f (or --flush)**
+>Flush the sam file after each mapping experiment in `{output_dir}/{seq}/{aligner}`.
 
 **-s < str >**
 >Return the subset of sequencing reads with labels specified in capitals. For ex., **-s PSC** means only selecting reads labeled with P, S, and C). The subset of sequencing reads will be stored in `{output_dir}/{seq}/subset`.
@@ -81,6 +81,3 @@ SQUAT runs from the command line with the following options:
 
 **--seed < int >**
 > The seed for random sampling, default 0.	
-
-**--compressed**
-> Compress all the reports into a zip file, not recommended when --all is activated	

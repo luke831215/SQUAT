@@ -516,7 +516,7 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 	for (char i=0; i<=100; i++)
 	{
 		double tmpf = (double)CntGCRead[i] / (double)ReadCount;
-		fprintf(fphtm, "[%d,%.2f],", i, tmpf);
+		fprintf(fphtm, "[%d,%.4f],", i, tmpf);
 		if (i % 10 == 9)
 			fprintf(fphtm, "\n");
 	}
@@ -553,7 +553,7 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 	for (size_t i=0; i<QSCORE_SIZE; i++)
 	{
 		double tmpf = (double)QCount[i] / (double)TotalLen;
-		fprintf(fphtm, "[%lu,%.3f], ", i, tmpf);
+		fprintf(fphtm, "[%lu,%.4f], ", i, tmpf);
 		if (i % 10 == 9)
 			fprintf(fphtm, "\n");
 	}
@@ -592,7 +592,7 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 	{
 		double tmpf = (double)MinQCount[i] / (double)ReadCount;
 //		double tmpf2 = (double)cumuCnt / (double)ReadCount;
-		fprintf(fphtm, "[%lu,%.3f], ", i, tmpf);
+		fprintf(fphtm, "[%lu,%.4f], ", i, tmpf);
 		if (i % 10 == 9)
 			fprintf(fphtm, "\n");
 		cumuCnt -= MinQCount[i];
@@ -627,7 +627,7 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 		{
 			cumuCnt[k] += HiQPercentCount[k][i];
 			cumuRatio[k] = (double)cumuCnt[k] / (double)ReadCount;
-			fprintf(fphtm, ",%.3f", cumuRatio[k]);
+			fprintf(fphtm, ",%.4ff", cumuRatio[k]);
 		}
 		fprintf(fphtm, "],");
 //		double tmpf = (double)HiQPercentCount[j][i] / (double)ReadCount;

@@ -4,8 +4,7 @@
 Here we use the [example data](installation.md#example-data) in SQUAT to demonstrate the output structure in hierarchical fashion. Please execute the following commands first:
 
 	cd SQUAT
-	./squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta --compressed
-	unzip -d example/ example/SEQ.zip
+	./squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta
 	
 - Output directory: example
 - Dataset: SEQ.fastq
@@ -104,5 +103,8 @@ example/
 │   │   └── ...
 │   │
 │   └── subset //The directory containing subsets of SEQ (exists if --subset specified)
+│
+└── SEQ.zip //compressed file containing index file (table of content), pre-assembly and post-assembly reports
+
 
 ```

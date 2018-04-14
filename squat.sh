@@ -9,7 +9,7 @@ usage()
     echo -e "Usage: $0 seq1 seq2 ...  seqN [-o <output_dir>] [-r <ref_asm>]\n"
     echo "Optional args:"
     echo "-t    --thread    <int>   Number of threads to use" 
-    echo "-k    --keep  Don't flush The sam file after alignment" 
+    echo "-f    --flush  flush The sam file after alignment" 
     echo "-s    --subset    <str>   Return the subset of sequencing reads according to labels (in capitals, e.g. PSCO)" 
     echo "-g   <str>   Path to the reference genome file for GAGE benchmark tool" 
     echo "--gage    Activate gage mode, must specify reference genome (-g)"
@@ -21,7 +21,6 @@ usage()
     echo "--ot   --others-thre    <float>   Threshold for reads with other errors. Above threshold = poor quality reads, default 0.1" 
     echo "--nt   --n-thre   <float>   Threshold for reads containing N. Above threshold = poor quality reads, default 0.1" 
     echo "--seed   <int>   Specify the seed for random sampling, default 0" 
-    echo "--compressed    Compress into a zip file, not recommended when --all is activated"
 }
 
 function change_id {
@@ -64,7 +63,7 @@ fi
 
 #default parameter value
 MAXPROC=$(($(grep -c ^processor /proc/cpuinfo)/3))
-KEEP_SAM=NO
+FLUSH_SAM=NO
 NUM_SAMPLE=1000000
 SUBSET=NONE
 FULLSET=NO
@@ -74,10 +73,10 @@ CR_THRE=0.3
 O_THRE=0.1
 N_THRE=0.1
 SEED=0
-COMPRESS=NO
 
 SEQ_LIST=()
 NUM_SEQ=0
+
 while true; do
     if [[ $1 != "-"* && $# -gt 0 ]];
     then
@@ -99,8 +98,8 @@ case $key in
     usage
     exit 0
     ;;
-    -k|--keep)
-    KEEP_SAM=YES
+    -f|--flush)
+    FLUSH_SAM=YES
     shift
     ;;
     -o)
@@ -171,10 +170,6 @@ case $key in
     shift # past argument
     shift # past argument
     ;;
-    --compressed)
-    COMPRESS=YES
-    shift # past argument
-    ;;
     *)    # unknown option
     echo "Unknown option: "$1 >&2
     exit 1
@@ -239,9 +234,9 @@ function do_squat {
     #quast evaluation
     echo "Evaluate genome assemblies" | tee -a ${SEQDIR}/${DATA}.log
     if [[ -z "$GAGELOC" && -z "$GAGE" ]]; then
-        python3 ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} 2>&1 > /dev/null
+        python3 ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} -s 2>&1 > /dev/null
     else
-        python3 ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} -R ${GAGELOC} --gage 2>&1 > /dev/null 
+        python3 ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} -s -R ${GAGELOC} --gage2>&1 > /dev/null 
     fi
 
     #pre-Q report
@@ -258,21 +253,16 @@ function do_squat {
     python3 ${EXECDIR}/gen_report.py -o ${OUTDIR} -i ${ECVLOC} -d ${DATA} -n ${NUM_SAMPLE} -t ${READSIZE} -s ${SUBSET} -r ${REFLOC} | tee -a ${SEQDIR}/${DATA}.log
 
     #flush sam files
-    if [ "$KEEP_SAM" == "NO" ]; then
+    if [ "$FLUSH_SAM" == "YES" ]; then
         echo "Flushing sam files" | tee -a ${SEQDIR}/${DATA}.log
         for tool in bwa-mem bwa-backtrack; do
             rm ${SEQDIR}/${tool}/${DATA}_ecv_all.sam
         done
     fi
 
-    
-
-    if [ "$COMPRESS" == "YES" ]; then
-        echo "Compress into zip"
-        cd ${OUTDIR}
-        zip ${DATA}.zip -r9 ${DATA} ${DATA}.html 2>&1 > /dev/null
-        rm -r ${DATA} ${DATA}.html &> /dev/null  
-    fi
+    echo "Compress reports into zip"
+    cd ${OUTDIR}
+    zip ${DATA}.zip -r9 ${DATA}/*report.htm* ${DATA}/link ${DATA}.html 2>&1 > /dev/null
 }
 
 for ((i=0;i<$NUM_SEQ;i++)); do

@@ -43,7 +43,7 @@ After the installation, start running the tool with **squat.sh**.
 
 For trial purposes, we extract 25000 reads from the specie **Saccharomyces cerevisiae** and its assembly. Run the following command to start using. See [Usage](usage.md) and [Output](output.md) for more details.
 
-	./squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta --compressed
+	./squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta
 
 After finishing, open `SEQ.html` in example directory to begin.
 
@@ -101,8 +101,8 @@ SQUAT runs from the command line with the following options:
 **-t < int > (or --thread < int >)**
 >Number of threads to use. The default value is 1/3 of the number of CPUs of the current machine.
 
-**-k (or --keep)**
->Keep the sam file after each mapping experiment in `{output_dir}/{seq}/{aligner}`.
+**-f (or --flush)**
+>Flush the sam file after each mapping experiment in `{output_dir}/{seq}/{aligner}`.
 
 **-s < str >**
 >Return the subset of sequencing reads with labels specified in capitals. For ex., **-s PSC** means only selecting reads labeled with P, S, and C). The subset of sequencing reads will be stored in `{output_dir}/{seq}/subset`.

@@ -12,7 +12,15 @@ import csv
 
 colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
 labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N']
-
+label_des = {
+			'P': 'Perfectly-matched reads',
+			'S': 'Reads with substitution errors',
+			'C': 'Reads containing clips',
+			'O': 'Reads with other errors',
+			'M': 'Multi-mapped reads',
+			'F': 'Unmapped reads',
+			'N': 'Reads containing N'
+			}
 
 def save_to_csv(stats, src_dir, aln_tool_list):
 	dirname='{}/label_dis'.format(src_dir)
@@ -39,17 +47,22 @@ def fill_in_label(stats, soup, template_fpath):
 
 		#generate new icon
 		data_uri = base64.b64encode(open("{0}/{1}.png".format(icon_dirpath, label_list[i]), 'rb').read()).decode('utf-8').replace('\n', '')
-		img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri), **{'class': 'icon'})
+		img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri), **{'class': 'icon'}, title=label_des[label_list[i]])
 		label_div[i].append(img_src)
 
-	label_dis_table = soup.find('table', class_="label-dis-table")
+	label_dis_div = soup.find('div', id="label-dis-table")
+	label_dis_table = soup.find('table', **{"class": 'label-dis-table'})
 	for i in range(len(stats)):
 		for j in range(len(stats[0])):
 			cell = label_dis_table.find('td', id='{0}{1}'.format(labels[i], j+1))
 			cell.string = stats[i][j]
 
+	data_uri = base64.b64encode(open("{}/sample.png".format(icon_dirpath), 'rb').read()).decode('utf-8').replace('\n', '')
+	img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri), **{'class': 'sample'})
+	label_dis_div.append(img_src)
 
-def save_to_html(out_dir, template_fpath, data, thre, aln_tool_list, label_distribution, basic_stats, gen_stats):
+
+def save_to_html(out_dir, template_fpath, data, thre, aln_tool_list, label_distribution, basic_stats, gen_stats, neg_vals):
 	"""concat all figures into report.html by inserting figures into template.html"""
 	toc_fpath = '{}/toc.html'.format(os.path.dirname(template_fpath))
 	all_html_fpath = '{0}/{1}/post_report.html'.format(out_dir, data)
@@ -90,13 +103,11 @@ def save_to_html(out_dir, template_fpath, data, thre, aln_tool_list, label_distr
 
 		#poor_ratio = float(basic_stats[3][1].strip('%'))/100
 		if poor_ratio < thre['PM']:
-			span_class = ["result"]
-			review = "Percentage of poorly-mapped reads: {:.1%}".format(poor_ratio)
+			review = "Percentage of poorly-mapped reads (PM%): {:.1%}".format(poor_ratio)
 			icon_fpath = '{}/check.png'.format(icon_dirpath)
 
 		else:
-			span_class = ["result", "far", "fa-times-circle"]
-			review = "Percentage of poorly-mapped reads: {:.1%}".format(poor_ratio)
+			review = "Percentage of poorly-mapped reads (PM%): {:.1%}".format(poor_ratio)
 			icon_fpath = '{}/cross.png'.format(icon_dirpath)
 
 		result = main.find('span', class_="result")
@@ -104,6 +115,13 @@ def save_to_html(out_dir, template_fpath, data, thre, aln_tool_list, label_distr
 		img_src = soup.new_tag("img", src="data:image/png;base64,{0}".format(data_uri), **{'class': "title-icon"})
 		result.insert(0, img_src)
 		result.h3.string = review
+		
+		for label in neg_vals:
+			value = (np.sum(neg_vals[label])/len(neg_vals[label]))
+			if value >= 0.01:
+				sub_review = soup.new_tag("i", **{'class': "sub-review"})
+				sub_review.string = "PM% - type {0}: {1:.1%}".format(label, value)
+				result.append(sub_review)
 		
 		#section I
 		#set up basic sequence stats table
@@ -263,10 +281,10 @@ def get_genome_eval_stat(src_dir, ref_name):
 			if '.' not in value:
 				value = int(value)
 				if 'Kbp' in stats_name[i]:
-					value = value // 1000
+					value = value / 1000
 
 				if 'Mbp' in stats_name[i]:
-					value = value // 1000000
+					value = value / 1000000
 				value = '{:,}'.format(round(value, 1))
 			rows.append([stats_name[i], value])
 
@@ -363,9 +381,8 @@ def draw_bar(ax, label_array, read_size, idx, label=''):
 	return value
 
 
-def do_label_dis_bar(ax, align_array, aln_tool, label_array, thre):
+def do_label_dis_bar(ax, align_array, aln_tool, label_array, thre, neg_vals):
 	read_size = len(align_array)
-	patch_handles = {}
 	#x_labels = ['P', 'S', 'C', 'O', 'M', 'F', 'N'] if 'backtrack' not in aln_tool else ['P', 'S', 'O', 'M', 'F', 'N']
 	idx = 0
 	below_cnt = 0
@@ -382,7 +399,8 @@ def do_label_dis_bar(ax, align_array, aln_tool, label_array, thre):
 	below_cnt += lower_cnt
 	idx += 1
 	ymax = pos_value if ymax < pos_value else ymax
-	ymin = neg_value if ymin > pos_value else ymin
+	ymin = neg_value if ymin > neg_value else ymin
+	neg_vals['S'].append(lower_cnt / read_size)
 	
 	#C
 	#if 'backtrack' not in aln_tool:
@@ -391,7 +409,8 @@ def do_label_dis_bar(ax, align_array, aln_tool, label_array, thre):
 	below_cnt += lower_cnt
 	idx += 1
 	ymax = pos_value if ymax < pos_value else ymax
-	ymin = neg_value if ymin > pos_value else ymin
+	ymin = neg_value if ymin > neg_value else ymin
+	neg_vals['C'].append(lower_cnt / read_size)
 
 	#O
 	o_list = do_others(align_array, label_array)
@@ -399,7 +418,8 @@ def do_label_dis_bar(ax, align_array, aln_tool, label_array, thre):
 	below_cnt += lower_cnt
 	idx += 1
 	ymax = pos_value if ymax < pos_value else ymax
-	ymin = neg_value if ymin > pos_value else ymin
+	ymin = neg_value if ymin > neg_value else ymin
+	neg_vals['O'].append(lower_cnt / read_size)
 
 	#M
 	value = draw_bar(ax, label_array, read_size, idx, label='M')
@@ -408,9 +428,11 @@ def do_label_dis_bar(ax, align_array, aln_tool, label_array, thre):
 
 	#F
 	value = draw_bar(ax, label_array, read_size, idx, label='F')
-	below_cnt += np.sum(label_array == 'F')
+	lower_cnt = np.sum(label_array == 'F')
+	below_cnt += lower_cnt
 	idx += 1
 	ymin = value if ymin > value else ymin
+	neg_vals['F'].append(lower_cnt / read_size)
 
 	#N
 	n_list = do_N(align_array, label_array)
@@ -418,7 +440,8 @@ def do_label_dis_bar(ax, align_array, aln_tool, label_array, thre):
 	below_cnt += lower_cnt
 	idx += 1
 	ymax = pos_value if ymax < pos_value else ymax
-	ymin = neg_value if ymin > pos_value else ymin
+	ymin = neg_value if ymin > neg_value else ymin
+	neg_vals['N'].append(lower_cnt / read_size)
 
 
 	below_pct = below_cnt / read_size

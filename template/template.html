@@ -72,12 +72,6 @@
      background-color: #50cbad;
   }
 
-  i {
-    border-width: 0 3px 3px 0;
-    display: block;
-    padding: 3px;
-  }
-
   .up {
     transform: rotate(-135deg);
     -webkit-transform: rotate(-135deg);
@@ -146,6 +140,13 @@
   .review {
     font-family: monospace;
     font-size: 2em;
+  }
+
+  .sub-review {
+    font-family: monospace;
+    font-size: 1.5em;
+    text-align: center;
+    display:block;
   }
 
   .result {
@@ -232,6 +233,11 @@
       margin: 0 auto;
       width: 80%;
       height: 80%;
+  }
+
+  .sample {
+    display: block;
+    width: 80%;
   }
 
   th, td {
@@ -422,7 +428,7 @@
 
   <div class="header">
     <p id="header_title">
-        SQUAT Report
+        Post-Assembly SQUAT Report
     </p>
     
     <p id="time">
@@ -602,7 +608,7 @@
             <td id = "C2" class = "value_col"></td>
           </tr>
           <tr>
-            <td><div class="label"><span class="label-icon">O</span><img src="icons/O.png" class="icon" /></div></td>
+            <td><div class="label" style = "padding: 2px"><span class="label-icon">O</span><img src="icons/O.png" class="icon" /></div></td>
             <td id = "O1" class = "value_col"></td>
             <td id = "O2" class = "value_col"></td>
           </tr>

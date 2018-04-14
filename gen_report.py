@@ -134,17 +134,20 @@ def get_label_distribution(labels, aln_tool_list, src_dir, data, read_size):
 
 
 def draw_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_figures):
+	neg_vals = {'F': [], 'S': [], 'C': [], 'O': [], 'N': []}
 	cigar_dict, poor_pct_list = {}, np.zeros(len(aln_tool_list))
 	fig = plt.figure(figsize=(15, 10))
 	ymax, ymin = 0, 0
 	ax_list = [None] * len(aln_tool_list)
+
 	for i, aln_tool in enumerate(aln_tool_list):
 		ax_list[i] = fig.add_subplot(len(aln_tool_list) / 2, 2, i+1)
-		cigar_dict[aln_tool], poor_pct_list[i], ax_ymax, ax_ymin = plotter.do_label_dis_bar(ax_list[i], align_info_dict[aln_tool], aln_tool, label_dict[aln_tool], thre)
+		cigar_dict[aln_tool], poor_pct_list[i], ax_ymax, ax_ymin= plotter.do_label_dis_bar(ax_list[i], align_info_dict[aln_tool], aln_tool, label_dict[aln_tool], thre, neg_vals)
 		#x-axis
 		ax_list[i].axhline(color='black')
 		ymax = ax_ymax if ymax < ax_ymax else ymax
 		ymin = ax_ymin if ymin > ax_ymin else ymin
+
 
 	for ax in ax_list:
 		ax.set_ylim([ymin - 10, ymax + 10])
@@ -159,7 +162,7 @@ def draw_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot
 	plot_figures.append(fig)
 	plt.close()
 	avg_poor_pct = "{:.1%}".format(np.sum(poor_pct_list) / len(poor_pct_list))
-	return cigar_dict, avg_poor_pct
+	return cigar_dict, avg_poor_pct, neg_vals
 
 
 def draw_label_dis(label_distribution, aln_tool_list, src_dir, data, read_size, ecv_fpath, plot_figures):
@@ -341,10 +344,10 @@ if __name__ == '__main__':
 			align_info_dict[aln_tool] = pickle.load(open(path, 'rb'))
 		except:
 			align_info_dict[aln_tool] = extract_sam_info_primary(data, read_size, sam_file)
-			#pickle.dump(align_info_dict[aln_tool], open(path, 'wb'))
+			pickle.dump(align_info_dict[aln_tool], open(path, 'wb'))
 
 	#save label distribution bar and return cigar information
-	cigar_dict, avg_poor_pct = draw_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_figures)
+	cigar_dict, avg_poor_pct, neg_vals = draw_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot_figures)
 
 	#Plot distribution graph in terms of NM, CR, AS
 	print("Plot label distribution graph")
@@ -371,9 +374,9 @@ if __name__ == '__main__':
 	#make report
 	print('Writing report')
 	all_pdf_fpath = src_dir+'/report.pdf'
-	template_fpath = os.path.dirname(sys.argv[0])+'/template/template.html'
+	template_fpath = os.path.dirname(os.path.abspath(__file__))+'/template/template.html'
 	plotter.save_to_pdf(all_pdf_fpath, plot_figures)
-	plotter.save_to_html(out_dir, template_fpath, data, thre, aln_tool_list, label_distribution, basic_stats, genome_stats)
+	plotter.save_to_html(out_dir, template_fpath, data, thre, aln_tool_list, label_distribution, basic_stats, genome_stats, neg_vals)
 
 	#output subset reads if specified
 	if options.subset != 'NONE':

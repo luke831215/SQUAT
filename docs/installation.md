@@ -39,6 +39,6 @@ After the installation, start running the tool with **squat.sh**.
 
 For trial purposes, we extract 25000 reads from the specie **Saccharomyces cerevisiae** and its assembly. Run the following command to start using. See [Usage](usage.md) and [Output](output.md) for more details.
 
-	./squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta --compressed
+	./squat.sh example/SEQ.fastq -o example -r example/ASSEMBLY.fasta
 
 After finishing, open `SEQ.html` in example directory to begin.
