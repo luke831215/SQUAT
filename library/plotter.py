@@ -195,9 +195,9 @@ def save_to_html(out_dir, template_fpath, data, thre, aln_tool_list, label_distr
 	with open(toc_fpath) as file:
 		soup = BeautifulSoup(file, "lxml")
 		link = soup.find('a', id="post-assembly")
-		link['href'] = '{}/post_report.html'.format(data)
+		link['href'] = 'post_report.html'
 		link = soup.find('a', id="pre-assembly")
-		link['href'] = '{}/pre_report.htm'.format(data)
+		link['href'] = 'pre_report.htm'
 
 		with open(index_fpath, 'w') as w:
 			w.write(str(soup))
@@ -233,8 +233,8 @@ def get_genome_eval_stat(src_dir, ref_name):
 	stats = {}
 	if GAGE:
 		stats_name = [
-				"# Contigs", "Assembly Size (Mbp)", "N50 (Kbp)",
-				"Max Contigs (Kbp)", "NG25 (Kbp)", "NG50 (Kbp)", "NG75 (Kbp)", 
+				"# Scaffolds", "Assembly Size (Mbp)", "N50 (Kbp)",
+				"Max Scaffolds (Kbp)", "NG25 (Kbp)", "NG50 (Kbp)", "NG75 (Kbp)", 
 				"LG80", "LG90", "LG99", "# N's per 100 kbp",
 				"GC (%)", "Genome Fraction (%)", "Indels >= 5", "Inversions", "Relocation", "Translocation"
 		]
@@ -245,7 +245,7 @@ def get_genome_eval_stat(src_dir, ref_name):
 		]
 	else:
 		stats_name = [
-			"# Contigs", "Assembly Size (Mbp)", "Max Contigs (Kbp)", "N25 (Kbp)", "N50 (Kbp)", "N75 (Kbp)",
+			"# Scaffolds", "Assembly Size (Mbp)", "Max Scaffolds (Kbp)", "N25 (Kbp)", "N50 (Kbp)", "N75 (Kbp)",
 			"L80", "L90", "L99", "# N's per 100 kbp", "GC (%)"
 		]
 		cor_stats_name = [
