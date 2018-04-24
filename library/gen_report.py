@@ -7,8 +7,8 @@ import matplotlib; matplotlib.use('pdf')
 import matplotlib.pyplot as plt
 import pickle
 import shutil
+import plotter
 
-from library import plotter
 from importlib import reload
 
 def build_subset(subset_label, label_list, in_fpath, out_fpath):
@@ -288,6 +288,7 @@ if __name__ == '__main__':
 	opt_parser_group.add_option('-o', dest='out_dir', help = 'output directory')
 	opt_parser_group.add_option('-i', dest='ecv_fpath', help = 'Path of the read file')
 	opt_parser_group.add_option('-r', dest='ref_fpath', help = 'Path of the reference assembly')
+	opt_parser_group.add_option('-e', dest='exec_fpath', help = 'Path of the exec dir')
 	opt_parser_group.add_option('-d', dest='data', help='name of read data')
 	opt_parser_group.add_option('-n', dest='sample_size', help = 'sample size, equals to read size if no random sampling')
 	opt_parser_group.add_option('-t', dest='total_size', help = 'the read size of the whole dataset')
@@ -309,7 +310,7 @@ if __name__ == '__main__':
 	elif not options.total_size:
 		opt_parser.error('Need to specify the read size')
 
-	out_dir, ecv_fpath, data, read_size, total_size, ref_fpath = options.out_dir, options.ecv_fpath, options.data, options.sample_size, options.total_size, options.ref_fpath
+	out_dir, ecv_fpath, data, read_size, total_size, ref_fpath, exec_fpath = options.out_dir, options.ecv_fpath, options.data, options.sample_size, options.total_size, options.ref_fpath, options.exec_fpath
 	src_dir = out_dir + '/' + data
 
 	#aln_tool_list = ['bwa-mem', 'bowtie2-local', 'bwa-backtrack', 'bowtie2-backtrack']
@@ -374,7 +375,7 @@ if __name__ == '__main__':
 	#make report
 	print('Writing report')
 	all_pdf_fpath = src_dir+'/report.pdf'
-	template_fpath = os.path.dirname(os.path.abspath(__file__))+'/template/template.html'
+	template_fpath = exec_fpath+'/template/template.html'
 	plotter.save_to_pdf(all_pdf_fpath, plot_figures)
 	plotter.save_to_html(out_dir, template_fpath, data, thre, aln_tool_list, label_distribution, basic_stats, genome_stats, neg_vals)
 

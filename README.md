@@ -78,6 +78,8 @@ A pre-assembly report based on quality scores
 
 A post-assembly report based on read mapping
 
+If you need to re-generate the reports, execute `gen_report.sh` with the same arguments as `squat.sh`. This will save you much of the time. (Make sure to keep all the output files generated from squat.sh before execution)
+
 For details of the output directory structure, see [output section](https://luke831215.gitbooks.io/squat/content/output.html).
 
 <br>

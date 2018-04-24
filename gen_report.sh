@@ -203,10 +203,10 @@ function do_squat {
     #ECVLOC=$(dirname "$0")/${DATA}_ecv.fastq
 
     #delete if output dir already exists
-    if [ -d ${SEQDIR} ]; then
-        rm -r ${SEQDIR} &> /dev/null
-    fi
-    mkdir ${SEQDIR} &> /dev/null
+    #if [ -d ${SEQDIR} ]; then
+    #    rm -r ${SEQDIR} &> /dev/null
+    #fi
+    #mkdir ${SEQDIR} &> /dev/null
 
     touch ${SEQDIR}/${DATA}.log
     echo "Start examining ${DATA}" | tee -a ${SEQDIR}/${DATA}.log
@@ -227,17 +227,17 @@ function do_squat {
         fi
     fi
 
-    #map reads to genome using alignment tools
-    echo "BWA read mapping" | tee -a ${SEQDIR}/${DATA}.log
-    bash ${EXECDIR}/library/run_mapping.sh ${EXECDIR} ${SEQDIR} ${DATA} ${READSIZE} ${REFLOC} ${ECVLOC} ${MAXPROC} | tee -a ${SEQDIR}/${DATA}.log
-
-    #quast evaluation
-    echo "Evaluate genome assemblies" | tee -a ${SEQDIR}/${DATA}.log
-    if [[ -z "$GAGELOC" && -z "$GAGE" ]]; then
-        python3 ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} -s 2>&1 > /dev/null
-    else
-        python3 ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} -s -R ${GAGELOC} --gage 2>&1 > /dev/null 
-    fi
+    ##map reads to genome using alignment tools
+    #echo "BWA read mapping" | tee -a ${SEQDIR}/${DATA}.log
+    #bash ${EXECDIR}/library/run_mapping.sh ${EXECDIR} ${SEQDIR} ${DATA} ${READSIZE} ${REFLOC} ${ECVLOC} ${MAXPROC} | tee -a ${SEQDIR}/${DATA}.log
+#
+    ##quast evaluation
+    #echo "Evaluate genome assemblies" | tee -a ${SEQDIR}/${DATA}.log
+    #if [[ -z "$GAGELOC" && -z "$GAGE" ]]; then
+    #    python3 ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} -s 2>&1 > /dev/null
+    #else
+    #    python3 ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} -s -R ${GAGELOC} --gage 2>&1 > /dev/null 
+    #fi
 
     #pre-Q report
     echo "Generate pre-assembly reports" | tee -a ${SEQDIR}/${DATA}.log
