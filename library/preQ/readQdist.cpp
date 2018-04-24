@@ -1,5 +1,5 @@
 /*
-== Author: Yu-Jung Chang; update: 2018/03
+== Author: Yu-Jung Chang; update: 2018/04
 Read single FASTQ file and generate quality distribution of the data
 */
 //=============================================================================
@@ -80,8 +80,20 @@ string GetFileName(const string& s)
 		string str = s.substr(i+1, s.length() - i);
 		return(str);
 	}
-	
-	return("");
+	else
+		return(s);
+}
+
+string GetFilePrefix(string s)
+{
+	 char sep = '.';
+	size_t i = s.rfind(sep, s.length());
+	if (i != string::npos) {
+		string str = s.substr(0, i);
+		return(str);
+	}
+	else
+		return(s);
 }
 
 //=============================================================================
@@ -257,58 +269,61 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 	fprintf(fpout, "MinReadLen,%lu\n", MinSeqLen);
 */
 	// Output html
-	fprintf(fphtm, "<html>\n<head>\n<title>Pre-assembly SQUAT report</title><script type=\"text/javascript\" src=\"https://www.gstatic.com/charts/loader.js\"></script>\n");
-	fprintf(fphtm, "<link rel=\"stylesheet\" type=\"text/css\" href=\"link/template.css\">\n<script src=\"link/template.js\"></script>\n");
-	fprintf(fphtm, "</head>\n<body>\n");
+	// head
+	fprintf(fphtm, "<html>\n<head>\n  <title>Pre-assembly SQUAT report</title>\n  <script type=\"text/javascript\" src=\"https://www.gstatic.com/charts/loader.js\"></script>\n");
+	fprintf(fphtm, "  <link rel=\"stylesheet\" type=\"text/css\" href=\"link/template.css\">\n  <script src=\"link/template.js\"></script>\n");
+	fprintf(fphtm, "<style>\n");
+	fprintf(fphtm, ".tabI, .tabH { width: 70%%; border-collapse: collapse; border: 1px solid black; margin-left: auto; margin-right: auto; }\n"); // info, hq table
+	fprintf(fphtm, ".tabI { text-align: center}\n");
+	fprintf(fphtm, ".tabI th, .tabI td, .tabH th, .tabH td { border: 1px solid black; padding: 5px;}\n");
+	fprintf(fphtm, ".tabI th, .tabH th { background-color: #ccc; }\n");
+	fprintf(fphtm, ".tabC { width: 95%%; border: 1px;  margin-left: auto; margin-right: auto;}\n"); // chart table
+	fprintf(fphtm, ".gchart { height: 300px; width: 100%%; }\n");
+	fprintf(fphtm, "</style>\n");
+	fprintf(fphtm, "</head>\n\n");
+
+	// body	
+	fprintf(fphtm, "<body onresize='location.reload()'>\n");
+	fprintf(fphtm, "<div class=\"header\">\n");
+	fprintf(fphtm, "  <div id=\"header_title\">Pre-Assembly SQUAT Report</div>\n");
+	fprintf(fphtm, "  <div id=\"header_filename\">%s  </div>\n", GetCurrentTime().c_str());
+	fprintf(fphtm, "</div>\n\n");
+
+	fprintf(fphtm, "<div class=\"summary\">\n  <h2 style=\"text-align: center\">Summary</h2>\n\n");
 	
-	fprintf(fphtm, "<div class=\"header\">\n  <div id=\"header_title\">Pre-Assembly SQUAT Report</div>\n  <div id=\"header_filename\">%s</div>\n</div>", GetCurrentTime().c_str());
+	fprintf(fphtm, "<div class=\"ac\">\n");
+	fprintf(fphtm, "  <input class=\"ac-input\" id=\"ac-1\" name=\"ac-1\" type=\"checkbox\"/>\n");
+	fprintf(fphtm, "  <label class=\"ac-label\" for=\"ac-1\">Basic Statistics</label>\n");
+	fprintf(fphtm, "  <article class=\"ac-text\">\n");
+	fprintf(fphtm, "    <div class=\"ac-sub\">\n");
+	fprintf(fphtm, "      <span class=\"ac-row\" onclick=\"link('#Ffq')\">Attributes of FASTQ</span>\n");
+	fprintf(fphtm, "    </div>\n");
+	fprintf(fphtm, "    <div class=\"ac-sub\">\n");
+	fprintf(fphtm, "      <span class=\"ac-row\" onclick=\"link('#Fgc')\">Alphabet Frequency & GC content</span>\n");
+	fprintf(fphtm, "    </div>\n");
+	fprintf(fphtm, "  </article>\n");
+	fprintf(fphtm, "</div>\n");
 
-	fprintf(fphtm, "<div class=\"summary\">\n  <h2 style=\"text-align: center\">Summary</h2>\n");
-	
-	fprintf(fphtm, "<div class=\"ac\"\n>");
-	fprintf(fphtm, "<input class=\"ac-input\" id=\"ac-1\" name=\"ac-1\" type=\"checkbox\" /\n>");
-	fprintf(fphtm, "<label class=\"ac-label\" for=\"ac-1\">Basic Statistics</label>");
-	fprintf(fphtm, "<article class=\"ac-text\">");
-	fprintf(fphtm, "<div class=\"ac-sub\">");
-	fprintf(fphtm, "<span class=\"ac-row\" onclick=\"link('#Fs')\">");
-	fprintf(fphtm, "Attributes of FASTQ");
-	fprintf(fphtm, "</span>");
-	fprintf(fphtm, "</div>");
-	fprintf(fphtm, "<div class=\"ac-sub\">");
-	fprintf(fphtm, "<span class=\"ac-row\" onclick=\"link('#Fa')\">");
-	fprintf(fphtm, "Alphabet Frequency & GC content");
-	fprintf(fphtm, "</span>");
-	fprintf(fphtm, "</div>");
-	fprintf(fphtm, "</article>");
-	fprintf(fphtm, "</div>");
+	fprintf(fphtm, "<div class=\"ac\">\n");
+	fprintf(fphtm, "  <input class=\"ac-input\" id=\"ac-2\" name=\"ac-2\" type=\"checkbox\"/>\n");
+	fprintf(fphtm, "  <label class=\"ac-label\" for=\"ac-2\">Quality Statistics</label>\n");
+	fprintf(fphtm, "  <article class=\"ac-text\">\n");
+	fprintf(fphtm, "    <div class=\"ac-sub\">\n");
+	fprintf(fphtm, "      <span class=\"ac-row\" onclick=\"link('#Fbq')\">Distribution of Bases' Quality Values</span>\n");
+	fprintf(fphtm, "    </div>\n");
+	fprintf(fphtm, "    <div class=\"ac-sub\">");
+	fprintf(fphtm, "      <span class=\"ac-row\" onclick=\"link('#Fmq')\">Distribution of Reads' MinimaQ Values</span>\n");
+	fprintf(fphtm, "    </div>\n");
+	fprintf(fphtm, "    <div class=\"ac-sub\">\n");
+	fprintf(fphtm, "      <span class=\"ac-row\" onclick=\"link('#Fhq')\">Covergae of Reads with Sufficient High-Quality Bases</span>\n");
+	fprintf(fphtm, "    </div>\n");
+	fprintf(fphtm, "  </article>\n");
+	fprintf(fphtm, "</div>\n");
 
-	fprintf(fphtm, "<div class=\"ac\"\n>");
-	fprintf(fphtm, "<input class=\"ac-input\" id=\"ac-2\" name=\"ac-2\" type=\"checkbox\" /\n>");
-	fprintf(fphtm, "<label class=\"ac-label\" for=\"ac-2\">Quality Statistics</label>");
-	fprintf(fphtm, "<article class=\"ac-text\">");
-	fprintf(fphtm, "<div class=\"ac-sub\">");
-	fprintf(fphtm, "<span class=\"ac-row\" onclick=\"link('#Fb')\">");
-	fprintf(fphtm, "Distribution of Bases' Quality Values");
-	fprintf(fphtm, "</span>");
-	fprintf(fphtm, "</div>");
-	fprintf(fphtm, "<div class=\"ac-sub\">");
-	fprintf(fphtm, "<span class=\"ac-row\" onclick=\"link('#Fm')\">");
-	fprintf(fphtm, "Distribution of Reads' MinimaQ Values");
-	fprintf(fphtm, "</span>");
-	fprintf(fphtm, "</div>");
-	fprintf(fphtm, "<div class=\"ac-sub\">");
-	fprintf(fphtm, "<span class=\"ac-row\" onclick=\"link('#Fd')\">");
-	fprintf(fphtm, "Covergae of Reads with Sufficient High-Quality Bases");
-	fprintf(fphtm, "</span>");
-	fprintf(fphtm, "</div>");
-	fprintf(fphtm, "</article>");
-	fprintf(fphtm, "</div>");
-	fprintf(fphtm, "</div>");
+	fprintf(fphtm, "<br><br><br><br><br><br>Notes: The report requires Internet connection to show the interactive charts of distribuions made by Google chart.\n\n");
+
+	fprintf(fphtm, "</div>\n\n");
 		
-		
-		  
-		    
-
 	/*<button class=\"accordion\">Basic Statistics</button>\n");
 	fprintf(fphtm, "    <ul><li><a href='#Fs'>Attributes of FASTQ</a></li>\n");
 	fprintf(fphtm, "    <li><a href='#Fa'>Alphabet Frequency & GC content</a></li></ul>\n");
@@ -318,19 +333,25 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 	fprintf(fphtm, "    <li><a href='#Fd'>Covergae of Reads with Sufficient High-Quality Bases</a></li></ul>\n");
 	fprintf(fphtm, "</div>\n<div class=\"main\">\n"); */
 
-	fprintf(fphtm, "<div class=\"main\" id=\"main\" onscroll=scrollFunction()>");
-	fprintf(fphtm, "<button onclick=\"topFunction()\" id=\"btpBtn\" title=\"Go to top\"><i class=\"up\"></i>Top</button>");
-	
-	fprintf(fphtm, "  <div id=Fs>\n");
+	// main
+	fprintf(fphtm, "<div class=\"main\" id=\"main\" onscroll=scrollFunction()>\n");
+	fprintf(fphtm, "  <button onclick=\"topFunction()\" id=\"btpBtn\" title=\"Go to top\"><i class=\"up\"></i>Top</button>\n");
+
+	fprintf(fphtm, "  <br><h1 class='data' style='text-align: center'>%s</h2><br>\n\n", GetFilePrefix(GetFileName(r1)).c_str());
+	fprintf(fphtm, "  <div id=sum style='height: 500px; width: 700px; margin-left: auto; margin-right: auto;'>\n");
+	fprintf(fphtm, "  </div>\n");
+
+	fprintf(fphtm, "  <div id=Ffq>\n");
 	fprintf(fphtm, "  <h3 style='color: darkblue;'>Attributes of FASTQ</h3>\n");
-	fprintf(fphtm, "  <table border=1 width=60%% style='margin-left:120px;'><tr align=center><th width=50%%>Name</th><th>Value</th></tr>\n");
-	fprintf(fphtm, "    <tr align=center><td>InputFile</td><td>%s</td></tr>\n", GetFileName(r1).c_str());
-	fprintf(fphtm, "    <tr align=center><td>#Read</td><td>%s</td></tr>\n", AddCommas(ReadCount).c_str());
-	fprintf(fphtm, "    <tr align=center><td>#Base</td><td>%s</td></tr>\n", AddCommas(TotalLen).c_str());
-	fprintf(fphtm, "    <tr align=center><td>AvgReadLen</td><td>%.2f</td></tr>\n", TotalLen/(double)ReadCount);
-	fprintf(fphtm, "    <tr align=center><td>MinReadLen</td><td>%lu</td></tr>\n", MinSeqLen);
-	fprintf(fphtm, "    <tr align=center><td>MaxReadLen</td><td>%lu</td></tr>\n", MaxSeqLen);
-	fprintf(fphtm, "  </table>\n  </div><br><br><br>\n");
+	fprintf(fphtm, "  <table class=tabI><tr><th width=50%%>Name</th><th>Value</th></tr>\n");
+	fprintf(fphtm, "    <tr><td>InputFile</td><td>%s</td></tr>\n", GetFileName(r1).c_str());
+	fprintf(fphtm, "    <tr><td>#Read</td><td>%s</td></tr>\n", AddCommas(ReadCount).c_str());
+	fprintf(fphtm, "    <tr><td>#Base</td><td>%s</td></tr>\n", AddCommas(TotalLen).c_str());
+	fprintf(fphtm, "    <tr><td>AvgReadLen</td><td>%.2f</td></tr>\n", TotalLen/(double)ReadCount);
+	fprintf(fphtm, "    <tr><td>MinReadLen</td><td>%lu</td></tr>\n", MinSeqLen);
+	fprintf(fphtm, "    <tr><td>MaxReadLen</td><td>%lu</td></tr>\n", MaxSeqLen);
+	fprintf(fphtm, "  </table>\n");
+	fprintf(fphtm, "  </div><br><br><br>\n");
 
 // --- Alphabet freq
 /*
@@ -355,9 +376,9 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 */
 
 	// htm
-	fprintf(fphtm, "  <div id=Fa>\n");
+	fprintf(fphtm, "  <div id=Fgc>\n");
 	fprintf(fphtm, "  <h3 style='color: darkblue;'>Alphabet Frequency & GC content</h3>\n");
-	fprintf(fphtm, "  <table border=1 width=60%% style='margin-left:120px;'><tr align=center><th>Name</th><th>Count</th><th>Freq%%</th></tr>\n");
+	fprintf(fphtm, "  <table class=tabI><tr><th>Name</th><th>Count</th><th>Freq%%</th></tr>\n");
 	for (size_t i=0; i<ALPHABET_SIZE; i++)
 	{
 		if (AlphabetCount[i] > 0)
@@ -372,13 +393,13 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 	if (AlphabetCount['N'] > 0)
 	{
 		double tmpf = 100.0 * (double)AlphabetCount['N'] / (double)TotalLen;
-		fprintf(fphtm, "    <tr align=center><td>""%c""</td><td>%s</td><td>%.2f%%</td></tr>\n", 'N', AddCommas(AlphabetCount['N']).c_str(), tmpf);
+		fprintf(fphtm, "    <tr><td>""%c""</td><td>%s</td><td>%.2f%%</td></tr>\n", 'N', AddCommas(AlphabetCount['N']).c_str(), tmpf);
 	}
 
 	// GC%
 	{
 		double tmpf = 100.0 * (double)(AlphabetCount['C']+AlphabetCount['G']) / (double)TotalLen;
-		fprintf(fphtm, "    <tr align=center><td>GC%%</td><td>-</td><td>%.2f%%</td></tr>\n", tmpf);
+		fprintf(fphtm, "    <tr><td>GC%%</td><td>-</td><td>%.2f%%</td></tr>\n", tmpf);
 	}
 	fprintf(fphtm, "  </table>\n");
 
@@ -395,13 +416,13 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 	}
 */
 	// htm gc plot
-	fprintf(fphtm, "  <table border=0 width=80%%>");
-	fprintf(fphtm, "    <tr><td id=gc style='height: 300px'></td></tr>\n");
+	fprintf(fphtm, "  <table class=tabC>");
+	fprintf(fphtm, "    <tr><td id=gc class=gchart></td></tr>\n");
 	fprintf(fphtm, "  </table>\n");
 	fprintf(fphtm, "  </div><br><br><br>\n");
 
 	// BaseQ
-	fprintf(fphtm, "  <div id=Fb>\n");
+	fprintf(fphtm, "  <div id=Fbq  style='page-break-before: always'>\n");
 	fprintf(fphtm, "  <h3 style='color: darkblue;'>Distribution of Bases' Quality Values</h3>\n");
 
 	size_t BQsum[4] = {0}; // <15, 15-19, 20-29, 30+
@@ -416,19 +437,20 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 		else
 			BQsum[3] += QCount[i];
 	}
-	fprintf(fphtm, "  <table border=1 width=60%% style='margin-left:120px;'><tr align=center><th width=50%%>Name</th><th>AreaFreq</th></tr>\n");
-	fprintf(fphtm, "    <tr align=center><td>Q30 & above</td><td>%.1f%%</td></tr>\n", 100.0*(double)BQsum[3]/(double)TotalLen);
-	fprintf(fphtm, "    <tr align=center><td>Q20-Q29</td><td>%.1f%%</td></tr>\n", 100.0*(double)BQsum[2]/(double)TotalLen);
-	fprintf(fphtm, "    <tr align=center><td>Q15-Q19</td><td>%.1f%%</td></tr>\n", 100.0*(double)BQsum[1]/(double)TotalLen);
-	fprintf(fphtm, "    <tr align=center><td>< Q15</td><td>%.1f%%</td></tr>\n", 100.0*(double)BQsum[0]/(double)TotalLen);
+	fprintf(fphtm, "  <table class=tabI><tr><th width=50%%>Name</th><th>AreaFreq</th></tr>\n");
+	fprintf(fphtm, "    <tr><td>Q30 & above</td><td>%.1f%%</td></tr>\n", 100.0*(double)BQsum[3]/(double)TotalLen);
+	fprintf(fphtm, "    <tr><td>Q20-Q29</td><td>%.1f%%</td></tr>\n", 100.0*(double)BQsum[2]/(double)TotalLen);
+	fprintf(fphtm, "    <tr><td>Q15-Q19</td><td>%.1f%%</td></tr>\n", 100.0*(double)BQsum[1]/(double)TotalLen);
+	fprintf(fphtm, "    <tr><td>< Q15</td><td>%.1f%%</td></tr>\n", 100.0*(double)BQsum[0]/(double)TotalLen);
 	fprintf(fphtm, "  </table>\n\n");
 
-	fprintf(fphtm, "  <table border=0 width=80%%>");
-	fprintf(fphtm, "  <tr><td id=bq style=\"height: 300px\"></td></tr>\n");
-	fprintf(fphtm, "  </table>\n  </div><br><br><br>\n");
+	fprintf(fphtm, "  <table class=tabC>");
+	fprintf(fphtm, "    <tr><td id=bq  class=gchart></td></tr>\n");
+	fprintf(fphtm, "  </table>\n");
+	fprintf(fphtm, "  </div><br><br><br>\n");
 
 	// MinQ
-	fprintf(fphtm, "  <div id=Fm>\n");
+	fprintf(fphtm, "  <div id=Fmq>\n");
 	fprintf(fphtm, "  <h3 style='color: darkblue;'>Distribution of Reads' MinimalQ Values</h3>\n");
 
 	size_t MQsum[3] = {0}; // >= 10, >=15, >=20
@@ -447,20 +469,21 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 			}
 		}
 	}
-	fprintf(fphtm, "  <table border=1 width=60%% style='margin-left:120px;'><tr align=center><th width=50%%>Name</th><th>AreaFreq</th></tr>\n");
-	fprintf(fphtm, "    <tr align=center><td>%% of reads whose bases are all Q20 & above</td><td>%.1f%%</td></tr>\n", 100.0*(double)MQsum[2]/(double)ReadCount);
-	fprintf(fphtm, "    <tr align=center><td>%% of reads whose bases are all Q15 & above</td><td>%.1f%%</td></tr>\n", 100.0*(double)MQsum[1]/(double)ReadCount);
-	fprintf(fphtm, "    <tr align=center><td>%% of reads whose bases are all Q10 & above</td><td>%.1f%%</td></tr>\n", 100.0*(double)MQsum[0]/(double)ReadCount);
+	fprintf(fphtm, "  <table class=tabI><tr><th width=50%%>Name</th><th>AreaFreq</th></tr>\n");
+	fprintf(fphtm, "    <tr><td>%% of reads whose bases are all Q20 & above</td><td>%.1f%%</td></tr>\n", 100.0*(double)MQsum[2]/(double)ReadCount);
+	fprintf(fphtm, "    <tr><td>%% of reads whose bases are all Q15 & above</td><td>%.1f%%</td></tr>\n", 100.0*(double)MQsum[1]/(double)ReadCount);
+	fprintf(fphtm, "    <tr><td>%% of reads whose bases are all Q10 & above</td><td>%.1f%%</td></tr>\n", 100.0*(double)MQsum[0]/(double)ReadCount);
 	fprintf(fphtm, "  </table>\n\n");
 
-	fprintf(fphtm, "  <table border=0 width=80%%>");
-	fprintf(fphtm, "  <tr><td id=mq style=\"height: 300px\"></td></tr>\n");
-	fprintf(fphtm, "  </table>\n  </div><br><br><br>\n");
+	fprintf(fphtm, "  <table class=tabC>");
+	fprintf(fphtm, "    <tr><td id=mq class=gchart></td></tr>\n");
+	fprintf(fphtm, "  </table>\n");
+	fprintf(fphtm, "  </div><br><br><br>\n");
 
-	fprintf(fphtm, "  <div id=Fd>\n");
+	fprintf(fphtm, "  <div id=Fhq style='page-break-before: always'>\n");
 	fprintf(fphtm, "  <h3 style='color: darkblue;'>Coverage of Reads with Sufficient High-Quality Bases</h3>\n");
 
-	double HQcov[4] = {0}; // 95-Q20, 95-Q15, 90-Q20, 90-Q15
+	double HQcov[5] = {0}; // 100-Q20, 95-Q20, 90-Q20, {90-Q15}, 1-{90-Q15}
 	for (long i=HiQCellSize, cumuCnt[HiQParamSize]={0}; i >= 0; i--)
 	{
 		double cumuRatio[HiQParamSize];
@@ -470,11 +493,14 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 			cumuCnt[k] += HiQPercentCount[k][i];
 //			printf("cov=%.1f, k=%d, cumuCnt[k]=%lu\n", cov, k, cumuCnt[k]);
 //			getchar();
-			if (cov == 95.0)
+			if (cov == 100.0)
 			{
 				if (k == 1) // Q20
 					HQcov[0] = (double)cumuCnt[k] / (double)ReadCount;
-				else if (k == 0) // Q15
+			}
+			if (cov == 95.0)
+			{
+				if (k == 1) // Q20
 					HQcov[1] = (double)cumuCnt[k] / (double)ReadCount;
 			}
 			else if (cov == 90.0)
@@ -482,30 +508,68 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 				if (k == 1) // Q20
 					HQcov[2] = (double)cumuCnt[k] / (double)ReadCount;
 				else if (k == 0) // Q15
+				{
 					HQcov[3] = (double)cumuCnt[k] / (double)ReadCount;
+					HQcov[4] = 1 - HQcov[3];
+				}
 			}
 		}
 	}
-	fprintf(fphtm, "  <table border=1 width=60%% style='margin-left:120px;'><tr align=center><th width=50%%>Name</th><th>Freq</th></tr>\n");
-	fprintf(fphtm, "    <tr align=center><td>Coverage of reads that >=95%% of bases with Q20 & above</td><td>%.1f%%</td></tr>\n", 100.0*HQcov[0]);
-	fprintf(fphtm, "    <tr align=center><td>Coverage of reads that >=95%% of bases with Q15 & above</td><td>%.1f%%</td></tr>\n", 100.0*HQcov[1]);
-	fprintf(fphtm, "    <tr align=center><td>Coverage of reads that >=90%% of bases with Q20 & above</td><td>%.1f%%</td></tr>\n", 100.0*HQcov[2]);
-	fprintf(fphtm, "    <tr align=center><td>Coverage of reads that >=90%% of bases with Q15 & above</td><td>%.1f%%</td></tr>\n", 100.0*HQcov[3]);
+	fprintf(fphtm, "  <table class=tabH><tr align=center><th width=50%%>Name</th><th>Coverage of reads</th><th>Remark</th></tr>\n");
+	fprintf(fphtm, "    <tr align=center><td align=left><b>%% of High-quality reads</b><br>Coverage of reads that 100%% of their bases with Q20 & above</td><td>%.1f%%</td><td>%%HighQ(20) >= 100%%<br>(i.e., MinimaQ>=20)</td></tr>\n", 100.0*HQcov[0]);
+	fprintf(fphtm, "    <tr align=center><td align=left>Coverage of reads that >= 95%% of their bases with Q20 & above</td><td>%.1f%%</td><td>%%HighQ(20) >= 95%%</td></tr>\n", 100.0*HQcov[1]);
+	fprintf(fphtm, "    <tr align=center><td align=left>Coverage of reads that >= 90%% of their bases with Q20 & above</td><td>%.1f%%</td><td>%%HighQ(20) >= 90%%</td></tr>\n", 100.0*HQcov[2]);
+	fprintf(fphtm, "    <tr align=center><td align=left>Coverage of reads that >= 90%% of their bases with Q15 & above</td><td>%.1f%%</td><td>%%HighQ(15) >= 90%%</td></tr>\n", 100.0*HQcov[3]);
+	fprintf(fphtm, "    <tr align=center><td align=left><b>%% of Poor-quality reads</b><br>Coverage of reads that > 10%% of their bases with Q14 & less</td><td>%.1f%%</td><td>1 - {%%HighQ(15) >= 90%%}</td></tr>\n", 100.0*HQcov[4]);
 	fprintf(fphtm, "  </table>\n\n");
+/*
+	// Insert to sum
+	fprintf(fphtm, "<script>\n");
+	fprintf(fphtm, "  var div = document.getElementById('sum')\n");
 
-	fprintf(fphtm, "  <table border=0 width=80%%>");
-	fprintf(fphtm, "    <tr><td align=center><img src=link/HighQ.gif alt='%%HighQ(q)' style='width: 400'></img></td></tr>\n");
-	fprintf(fphtm, "    <tr><td id=hq style=\"height: 300px\"></td></tr>\n");
-	fprintf(fphtm, "  </table>\n  </div><br><br><br>\n");
+	sprintf(line_buf, "<table border=0 align=center><tr style=\"font-style: italic; font-weight: bold; font-size: 24px\"><td>Percentage of poor-quality reads:</td><td>%.1f%%</td></tr> ", 100.0*HQcov[4]);
+	string ins = line_buf;
+	sprintf(line_buf, "<tr style=\"font-style: italic; font-size: 18px\"><td>Percentage of medium-quality reads:</td><td>%.1f%%</td></tr> ", 100.0*(1-HQcov[0]-HQcov[4]) );
+	ins += line_buf;
+	sprintf(line_buf, "<tr style=\"font-style: italic; font-size: 18px\"><td>Percentage of high-quality reads:</td><td>%.1f%%</td></tr></table>", 100.0*HQcov[0]);
+	ins += line_buf;
+
+	fprintf(fphtm, "  div.innerHTML += '%s'\n", ins.c_str());
+	fprintf(fphtm, "</script>\n\n");
+*/
+	fprintf(fphtm, "  <table class=tabC>");
+	fprintf(fphtm, "    <tr><td align=center><img src='link/HighQ.png' alt='%HighQ(q)' style='width: 462; Height: 56'></img></td></tr>\n");
+	fprintf(fphtm, "    <tr><td id=hq class=gchart></td></tr>\n");
+	fprintf(fphtm, "  </table>\n");
+	fprintf(fphtm, "  </div><br><br><br>\n");
+
 	fprintf(fphtm, "</div>");
 	
 	// script
 	fprintf(fphtm, "<script type=\"text/javascript\">\n");
 	fprintf(fphtm, "function DrawDist() {\n");
 
+// --- Pie of poor/mid/high-Q reads
+	// option
+	fprintf(fphtm, "  var optP = {\n");
+	fprintf(fphtm, "    titleTextStyle: { fontSize: 22 }, title: \"Categorization of read quality\", is3D: true, colors: ['red','orange','green']\n");
+	fprintf(fphtm, "  };\n");
+	
+	fprintf(fphtm, "  var dP = google.visualization.arrayToDataTable([\n");
+	fprintf(fphtm, "    ['Type', 'Percentage'],\n", HQcov[4]); 
+	fprintf(fphtm, "    ['Poor-quality reads', %.4f],\n", HQcov[4]); 
+	fprintf(fphtm, "    ['Medium-quality reads', %.4f],\n", 1.0-HQcov[4]-HQcov[0]); 
+	fprintf(fphtm, "    ['High-quality reads', %.4f],\n", HQcov[0]); 
+	fprintf(fphtm, "  ] );\n");
+	fprintf(fphtm, "  var chartP = new google.visualization.PieChart(document.getElementById('sum'));\n");
+	fprintf(fphtm, "  chartP.draw(dP, optP);\n");
+	fprintf(fphtm, "\n");
+
+
+// --- Dist of read gc 
 	// option
 	fprintf(fphtm, "  var opt1 = {\n");
-	fprintf(fphtm, "    title: 'GC%% of reads', hAxis: { title: 'GC%%' }, vAxis: { title: 'Freq%%', format: 'percent' }, colors: ['#a52714', '#097138']\n");
+	fprintf(fphtm, "    title: \"Frequency of reads' GC%%\", hAxis: { title: 'GC%%' }, vAxis: { title: 'Freq%%', format: 'percent' }, colors: ['#76A7FA']\n");
 	fprintf(fphtm, "  };\n");
 
 	fprintf(fphtm, "  var d1 = new google.visualization.DataTable();\n");
@@ -522,7 +586,7 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 	}
 
 	fprintf(fphtm, "  ] );\n");
-	fprintf(fphtm, "  var chart1 = new google.visualization.LineChart(document.getElementById('gc'));\n");
+	fprintf(fphtm, "  var chart1 = new google.visualization.ColumnChart(document.getElementById('gc'));\n");
 	fprintf(fphtm, "  chart1.draw(d1, opt1);\n");
 	fprintf(fphtm, "\n");
 
@@ -539,10 +603,11 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 		}
 	}
 */
+// --- Dist of read bq 
 	// option
 	fprintf(fphtm, "  var opt2 = {\n");
 //	fprintf(fphtm, "    title: 'Frequency of Bases Quality Values', hAxis: { title: 'Quality value' }, vAxis: { title: 'Freq%%', format: 'percent' }, colors: ['#a52714', '#097138']\n");
-	fprintf(fphtm, "    title: 'Frequency of base quality values', hAxis: { title: 'Quality value' }, vAxis: { title: 'Freq%%', format: 'percent' }, colors: ['#a52714', '#097138']\n");
+	fprintf(fphtm, "    title: 'Frequency of base quality values', hAxis: { title: 'Quality value' }, vAxis: { title: 'Freq%%', format: 'percent' }, colors: ['#097138']\n");
 	fprintf(fphtm, "  };\n");
 
 	fprintf(fphtm, "  var d2 = new google.visualization.DataTable();\n");
@@ -578,9 +643,10 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 	}
 */ 
 
+// --- Dist of read mq 
 	// option
 	fprintf(fphtm, "  var opt3 = {\n");
-	fprintf(fphtm, "    title: 'MinimalQ distribution', hAxis: { title: 'MinmalQ value', viewWindow: { max: 41 } }, vAxis: { title: 'Freq%%', format: 'percent' }, colors: ['#a52714', '#097138']\n");
+	fprintf(fphtm, "    title: 'MinimalQ distribution', hAxis: { title: 'MinmalQ value', viewWindow: { max: 41 } }, vAxis: { title: 'Freq%%', format: 'percent' }, colors: ['#a52714']\n");
 	fprintf(fphtm, "  };\n");
 
 	fprintf(fphtm, "  var d3 = new google.visualization.DataTable();\n");
@@ -627,7 +693,7 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 		{
 			cumuCnt[k] += HiQPercentCount[k][i];
 			cumuRatio[k] = (double)cumuCnt[k] / (double)ReadCount;
-			fprintf(fphtm, ",%.4ff", cumuRatio[k]);
+			fprintf(fphtm, ",%.4f", cumuRatio[k]);
 		}
 		fprintf(fphtm, "],");
 //		double tmpf = (double)HiQPercentCount[j][i] / (double)ReadCount;
