@@ -195,9 +195,9 @@ def save_to_html(out_dir, template_fpath, data, thre, aln_tool_list, label_distr
 	with open(toc_fpath) as file:
 		soup = BeautifulSoup(file, "lxml")
 		link = soup.find('a', id="post-assembly")
-		link['href'] = 'post_report.html'
+		link['href'] = '{0}/post_report.html'.format(data)
 		link = soup.find('a', id="pre-assembly")
-		link['href'] = 'pre_report.htm'
+		link['href'] = '{0}/pre_report.htm'.format(data)
 
 		with open(index_fpath, 'w') as w:
 			w.write(str(soup))

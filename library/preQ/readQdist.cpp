@@ -296,6 +296,9 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 	fprintf(fphtm, "  <label class=\"ac-label\" for=\"ac-1\">Basic Statistics</label>\n");
 	fprintf(fphtm, "  <article class=\"ac-text\">\n");
 	fprintf(fphtm, "    <div class=\"ac-sub\">\n");
+	fprintf(fphtm, "      <span class=\"ac-row\" onclick=\"link('#sum')\">Overall Categorization</span>\n");
+	fprintf(fphtm, "    </div>\n");
+	fprintf(fphtm, "    <div class=\"ac-sub\">\n");
 	fprintf(fphtm, "      <span class=\"ac-row\" onclick=\"link('#Ffq')\">Attributes of FASTQ</span>\n");
 	fprintf(fphtm, "    </div>\n");
 	fprintf(fphtm, "    <div class=\"ac-sub\">\n");
@@ -538,7 +541,7 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 	fprintf(fphtm, "</script>\n\n");
 */
 	fprintf(fphtm, "  <table class=tabC>");
-	fprintf(fphtm, "    <tr><td align=center><img src='link/HighQ.png' alt='%HighQ(q)' style='width: 462; Height: 56'></img></td></tr>\n");
+	fprintf(fphtm, "    <tr><td align=center><img src='link/HighQ.png' alt='%%HighQ(q)' style='width: 462; Height: 56'></img></td></tr>\n");
 	fprintf(fphtm, "    <tr><td id=hq class=gchart></td></tr>\n");
 	fprintf(fphtm, "  </table>\n");
 	fprintf(fphtm, "  </div><br><br><br>\n");
@@ -556,7 +559,7 @@ bool ProbeFASTQ(char *r1, char *outPrjName)
 	fprintf(fphtm, "  };\n");
 	
 	fprintf(fphtm, "  var dP = google.visualization.arrayToDataTable([\n");
-	fprintf(fphtm, "    ['Type', 'Percentage'],\n", HQcov[4]); 
+	fprintf(fphtm, "    ['Type', 'Percentage'],\n"); 
 	fprintf(fphtm, "    ['Poor-quality reads', %.4f],\n", HQcov[4]); 
 	fprintf(fphtm, "    ['Medium-quality reads', %.4f],\n", 1.0-HQcov[4]-HQcov[0]); 
 	fprintf(fphtm, "    ['High-quality reads', %.4f],\n", HQcov[0]); 
