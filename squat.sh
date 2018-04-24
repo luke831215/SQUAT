@@ -217,7 +217,7 @@ function do_squat {
         NUM_SAMPLE=${READSIZE}
         echo "No. of reads: ${READSIZE}" | tee -a ${SEQDIR}/${DATA}.log
     else
-        READSIZE=$(($(wc -l $ORGECV | cut -d ' ' -f 1) /4))
+        READSIZE=$(($(wc -l $ORGECV | cut -d ' ' -f 1)/4))
         if [ "$NUM_SAMPLE" -gt "$READSIZE" ]; then
             NUM_SAMPLE=$( change_id ${ECVLOC} ${ORGECV} ${DATA} )
             echo "No. of reads: ${NUM_SAMPLE}" | tee -a ${SEQDIR}/${DATA}.log
@@ -236,7 +236,7 @@ function do_squat {
     if [[ -z "$GAGELOC" && -z "$GAGE" ]]; then
         python3 ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} -s 2>&1 > /dev/null
     else
-        python3 ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} -s -R ${GAGELOC} --gage2>&1 > /dev/null 
+        python3 ${EXECDIR}/quast/quast.py ${REFLOC} -o ${SEQDIR}/quast --min-contig 200 -t ${MAXPROC} -s -R ${GAGELOC} --gage 2>&1 > /dev/null 
     fi
 
     #pre-Q report
@@ -262,7 +262,13 @@ function do_squat {
 
     echo "Compress reports into zip"
     cd ${OUTDIR}
-    zip ${DATA}.zip -r9 ${DATA}/*report.htm* ${DATA}/link ${DATA}.html 2>&1 > /dev/null
+    if [ -d ${DATA}_report.zip ]; then
+        rm ${DATA}_report.zip &> /dev/null
+    fi
+    mkdir -p ${DATA}_report/${DATA}; cp ${DATA}.html ${DATA}_report/
+    cp -r ${DATA}/*report.htm* ${DATA}/link ${DATA}_report/${DATA}/ 2>&1 > /dev/null
+    zip ${DATA}_report.zip -r9 ${DATA}_report &> /dev/null
+    rm -r ${DATA}_report &> /dev/null
 }
 
 for ((i=0;i<$NUM_SEQ;i++)); do

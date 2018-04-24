@@ -104,7 +104,7 @@ example/
 │   │
 │   └── subset //The directory containing subsets of SEQ (exists if --subset specified)
 │
-└── SEQ.zip //compressed file containing index file (table of content), pre-assembly and post-assembly reports
+└── SEQ_report.zip //compressed file containing index file (table of content), pre-assembly and post-assembly reports
 
 
 ```
