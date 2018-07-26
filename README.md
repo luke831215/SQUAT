@@ -21,13 +21,17 @@ hub: https://hub.docker.com/r/luke831215/squat/
 
 ## Github installation
 
-### Dependency
+### Prerequisite
+
 - [Python3](https://www.python.org/downloads/)
+
+### Dependencies
+
 - [Matplotlib](https://matplotlib.org/faq/installing_faq.html#python-org-python)
 - [Numpy](https://askubuntu.com/questions/765494/how-to-install-numpy-for-python3)
-- [Beautiful Soup (+ lxml parser)](https://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-beautiful-soup) 
+- [Beautiful Soup (+ lxml parser)](https://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-beautiful-soup)
 
-`pip3 install matplotlib numpy beautifulsoup4 lxml`
+`pip3 install -r requirements.txt`
 
 First, you need to clone down the repository.
 
