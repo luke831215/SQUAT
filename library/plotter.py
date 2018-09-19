@@ -532,7 +532,7 @@ def do_label_dis_table(label_dis, src_dir, aln_tool_list, plot_figures):
 
 
 def do_label_piechart(label_dis, src_dir, aln_tool_list, plot_figures):
-	labels = ['P', 'C', 'S', 'O', 'F', 'M', 'N']
+	#labels = ['P', 'C', 'S', 'O', 'F', 'M', 'N']
 	fracs = [None] * len(labels)
 
 	fig = plt.figure(figsize=(15, 8))
