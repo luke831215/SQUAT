@@ -320,7 +320,8 @@ def plot_sam_dis(src_dir, data, aln_tool, label_array, read_size, plot_figures, 
 			ax.text(thre, 0.5, '{} ratio'.format(label), transform=ax.transAxes, zorder=21)
 	
 	label_dis = num_read / read_size
-	ax.plot(1, 1, label='No. of {0} reads: {1} ({2:.1%})'.format(label, num_read, label_dis), marker='', ls='')
+	midValue = sum(bins)/len(bins)
+	ax.plot(midValue, midValue, label='No. of {0} reads: {1} ({2:.1%})'.format(label, num_read, label_dis), marker='', ls='')
 	ax.legend(loc=1, prop={'size': 15})
 
 	title = '{0} distribution of {1} reads\n{2}'.format(xlabel, label, aln_tool)
