@@ -4,7 +4,7 @@ SQUAT stands for **Sequencing QUality Assessment Tool**. It allows users to exam
 
 The tool aligns sequencing reads against the assembly with **[BWA](http://bio-bwa.sourceforge.net/)** and generates one pre-assembly and one post-assembly report at the end of the analysis.
 
-Manual: [https://www.gitbook.com/book/luke831215/squat](https://www.gitbook.com/book/luke831215/squat)
+Manual: [https://luke831215.gitbooks.io/squat/content](https://luke831215.gitbooks.io/squat/content/)
 
 <br>
 
