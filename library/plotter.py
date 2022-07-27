@@ -542,7 +542,7 @@ def do_label_piechart(label_dis, src_dir, aln_tool_list, plot_figures):
 		for j, label in enumerate(labels):
 			fracs[j] = label_dis[aln_tool][label] * 100
 
-		ax = fig.add_subplot(len(aln_tool_list) / 2, 2, i+1)
+		ax = fig.add_subplot(int(len(aln_tool_list) / 2), 2, i+1)
 		patches, texts, autotexts = ax.pie(fracs, labels=labels, autopct="%.1f%%", radius=0.8, pctdistance=1.25, labeldistance=1.05)
 		patches[0].set_edgecolor('white')
 		for text in texts:
