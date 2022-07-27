@@ -141,7 +141,7 @@ def draw_label_dis_bar(label_dict, align_info_dict, src_dir, aln_tool_list, plot
 	ax_list = [None] * len(aln_tool_list)
 
 	for i, aln_tool in enumerate(aln_tool_list):
-		ax_list[i] = fig.add_subplot(len(aln_tool_list) / 2, 2, i+1)
+		ax_list[i] = fig.add_subplot(int(len(aln_tool_list) / 2), 2, i+1)
 		cigar_dict[aln_tool], poor_pct_list[i], ax_ymax, ax_ymin= plotter.do_label_dis_bar(ax_list[i], align_info_dict[aln_tool], aln_tool, label_dict[aln_tool], thre, neg_vals)
 		#x-axis
 		ax_list[i].axhline(color='black')
