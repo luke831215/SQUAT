@@ -25,11 +25,10 @@ cd bwa; make
 #install quast
 echo "install quast"
 cd ${INSTDIR}
-wget https://downloads.sourceforge.net/project/quast/quast-4.6.3.tar.gz
-tar -xzf quast-4.6.3.tar.gz
-mv quast-4.6.3 quast;
-rm quast-4.6.3.tar.gz*
-cp ${INSTDIR}/library/quast_code/* ${INSTDIR}/quast/quast_libs
+wget https://downloads.sourceforge.net/project/quast/quast-5.2.0.tar.gz
+tar -xzf quast-5.2.0.tar.gz
+mv quast-5.2.0 quast;
+rm quast-5.2.0.tar.gz*
 
 #build readQdist
 echo "build files for generating pre-assembly quality report"
