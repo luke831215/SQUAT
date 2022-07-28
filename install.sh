@@ -29,7 +29,6 @@ wget https://downloads.sourceforge.net/project/quast/quast-5.2.0.tar.gz
 tar -xzf quast-5.2.0.tar.gz
 mv quast-5.2.0 quast;
 rm quast-5.2.0.tar.gz*
-cp ${INSTDIR}/library/quast_code/* ${INSTDIR}/quast/quast_libs
 
 #build readQdist
 echo "build files for generating pre-assembly quality report"
